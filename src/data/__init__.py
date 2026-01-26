@@ -7,6 +7,8 @@ from data.collators import (
 )
 from data.unlearn import ForgetRetainDataset
 from data.pretraining import PretrainingDataset, CompletionDataset
+from data.augmented_qa_dataset import AugmentedQADataset 
+from data.augmented_qa_with_idk_dataset import AugmentedQAwithIdkDataset
 
 DATASET_REGISTRY: Dict[str, Any] = {}
 COLLATOR_REGISTRY: Dict[str, Any] = {}
@@ -21,6 +23,10 @@ def _register_collator(collator_class):
 
 
 def _load_single_dataset(dataset_name, dataset_cfg: DictConfig, **kwargs):
+    # ⬅️ AGGIUNGI QUESTO DEBUG
+    print(f"🔍 Loading dataset: {dataset_name}")
+    print(f"🔍 Config: {dataset_cfg}")
+    print(f"🔍 Handler: {dataset_cfg.get('handler')}")
     dataset_handler_name = dataset_cfg.get("handler")
     assert dataset_handler_name is not None, ValueError(
         f"{dataset_name} handler not set"
@@ -96,6 +102,8 @@ _register_data(QAwithIdkDataset)
 _register_data(PretrainingDataset)
 _register_data(CompletionDataset)
 _register_data(QAwithAlternateDataset)
+_register_data(AugmentedQADataset)
+_register_data(AugmentedQAwithIdkDataset)
 
 # Register composite datasets used in unlearning
 # groups: unlearn

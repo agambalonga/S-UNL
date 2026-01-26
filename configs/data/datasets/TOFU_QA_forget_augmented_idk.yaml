@@ -1,0 +1,11 @@
+TOFU_QA_forget_augmented_idk:
+  handler: AugmentedQAwithIdkDataset
+  args:
+    json_path: data/tofu_${forget_split}_augmented.json
+    idk_path: ./data/idk.jsonl
+    question_key: question
+    answer_key: answer
+    max_length: 512
+    return_original: true
+    filter_types: null  # null = usa tutti (original + paraphrase_1 + paraphrase_2)
+    # filter_types: ["original", "paraphrase_1"]  # per usare solo alcuni tipi

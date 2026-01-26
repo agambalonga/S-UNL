@@ -8,8 +8,9 @@ from evals.metrics.memorization import (
     truth_ratio,
     extraction_strength,
     exact_memorization,
+    memorization_score,
 )
-from evals.metrics.privacy import ks_test, privleak, rel_diff
+from evals.metrics.privacy import ks_test, privleak, rel_diff, privacy_score
 from evals.metrics.mia import (
     mia_loss,
     mia_min_k,
@@ -21,6 +22,8 @@ from evals.metrics.mia import (
 from evals.metrics.utility import (
     hm_aggregate,
     classifier_prob,
+    utility_score,
+    aggregate_score,
 )
 
 METRICS_REGISTRY: Dict[str, UnlearningMetric] = {}
@@ -73,3 +76,9 @@ _register_metric(mia_reference)
 
 # Register Utility metrics
 _register_metric(classifier_prob)
+
+# Register TOFU aggregate metrics
+_register_metric(memorization_score)
+_register_metric(privacy_score)
+_register_metric(utility_score)
+_register_metric(aggregate_score)

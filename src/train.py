@@ -1,5 +1,11 @@
+import os
+# Disabilita SSL verification se richiesto (compatibilità Zscaler proxy)
+if os.environ.get("PYTHONHTTPSVERIFY") == "0":
+    import disable_ssl
+
+import time
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from data import get_data, get_collators
 from model import get_model
 from trainer import load_trainer
@@ -13,6 +19,9 @@ def main(cfg: DictConfig):
     Args:
         cfg (DictConfig): Config to train
     """
+    start_time = time.time()
+
+    print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.trainer.args.seed)
     mode = cfg.get("mode", "train")
     model_cfg = cfg.model
@@ -63,6 +72,11 @@ def main(cfg: DictConfig):
 
     if trainer_args.do_eval:
         trainer.evaluate(metric_key_prefix="eval")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Training and evaluation completed in {elapsed_time / 60:.2f} minutes.")
+
 
 
 if __name__ == "__main__":

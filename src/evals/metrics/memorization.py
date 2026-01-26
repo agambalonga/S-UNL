@@ -255,3 +255,30 @@ def extraction_strength(model, **kwargs):
     )
     es_values = aggregate_to_1D(es_values)
     return {"agg_value": np.mean(es_values), "value_by_index": scores_by_index}
+
+
+@unlearning_metric(name="memorization_score")
+def memorization_score(model, **kwargs):
+    """Calculate TOFU Memorization Score = HM(1-ES, 1-EM, 1-Para.Prob, 1-Truth Ratio)"""
+    import scipy as sc
+    
+    pre_compute = kwargs["pre_compute"]
+    
+    components = []
+    if "extraction_strength" in pre_compute:
+        es = pre_compute["extraction_strength"]["agg_value"]
+        components.append(1 - es)
+    if "exact_memorization" in pre_compute:
+        em = pre_compute["exact_memorization"]["agg_value"]
+        components.append(1 - em)
+    if "forget_Q_A_PARA_Prob" in pre_compute:
+        para_prob = pre_compute["forget_Q_A_PARA_Prob"]["agg_value"]
+        components.append(1 - para_prob)
+    if "forget_truth_ratio" in pre_compute:
+        truth_ratio = pre_compute["forget_truth_ratio"]["agg_value"]
+        components.append(1 - truth_ratio)
+    
+    if len(components) == 0:
+        return {"agg_value": None}
+    
+    return {"agg_value": sc.stats.hmean(components)}

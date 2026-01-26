@@ -1,0 +1,6 @@
+# @package eval.tofu.metrics.aggregate_score
+defaults:
+  - .@pre_compute.memorization_score: memorization_score
+  - .@pre_compute.utility_score: utility_score
+
+handler: aggregate_score

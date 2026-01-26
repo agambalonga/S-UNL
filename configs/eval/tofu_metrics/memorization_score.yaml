@@ -1,0 +1,8 @@
+# @package eval.tofu.metrics.memorization_score
+defaults:
+  - .@pre_compute.extraction_strength: extraction_strength
+  - .@pre_compute.exact_memorization: exact_memorization
+  - .@pre_compute.forget_Q_A_PARA_Prob: forget_Q_A_PARA_Prob
+  - .@pre_compute.forget_truth_ratio: forget_Truth_Ratio
+
+handler: memorization_score

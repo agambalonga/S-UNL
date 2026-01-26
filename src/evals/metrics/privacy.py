@@ -64,3 +64,26 @@ def rel_diff(model, **kwargs):
         )
         ref = kwargs["ref_value"]
     return {"agg_value": (score - ref) / (ref + 1e-10) * 100}
+
+
+@unlearning_metric(name="privacy_score")
+def privacy_score(model, **kwargs):
+    """Calculate TOFU Privacy Score = HM(sLOSS, sZLib, sMin-k, sMink++)"""
+    import scipy as sc
+    
+    pre_compute = kwargs["pre_compute"]
+    
+    components = []
+    if "mia_loss" in pre_compute:
+        components.append(pre_compute["mia_loss"]["agg_value"])
+    if "mia_zlib" in pre_compute:
+        components.append(pre_compute["mia_zlib"]["agg_value"])
+    if "mia_min_k" in pre_compute:
+        components.append(pre_compute["mia_min_k"]["agg_value"])
+    if "mia_min_k_plus_plus" in pre_compute:
+        components.append(pre_compute["mia_min_k_plus_plus"]["agg_value"])
+    
+    if len(components) == 0:
+        return {"agg_value": None}
+    
+    return {"agg_value": sc.stats.hmean(components)}

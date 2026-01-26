@@ -1,0 +1,9 @@
+TOFU_QA_forget_augmented:
+  handler: AugmentedQADataset  # ⬅️ Usa il custom handler
+  args:
+    json_path: data/tofu_${eval.tofu.forget_split}_augmented.json  # ⬅️ Path dinamico
+    question_key: question
+    answer_key: answer
+    max_length: 512
+    filter_types: null  # null = usa tutti (original + paraphrases)
+    # filter_types: ["original", "paraphrase_1"]  # per usare solo alcuni

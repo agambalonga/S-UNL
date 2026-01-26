@@ -1,0 +1,6 @@
+defaults:
+  - datasets@forget: TOFU_QA_forget_augmented  # ⬅️ Usa dataset augmented
+  - datasets@retain: TOFU_QA_retain            # Retain standard
+  - datasets@eval: null
+
+anchor: forget

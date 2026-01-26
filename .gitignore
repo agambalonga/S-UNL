@@ -25,6 +25,7 @@ eval_logs/
 eval_dumps/
 # C extensions
 *.so
+plots/
 
 # Distribution / packaging
 .Python

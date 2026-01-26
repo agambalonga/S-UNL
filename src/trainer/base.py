@@ -3,7 +3,9 @@
 from typing import Dict, List, Optional, Union
 
 import os
+import gc
 import logging
+import torch
 from transformers import Trainer
 from torch.utils.data import Dataset
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
@@ -46,6 +48,12 @@ class FinetuneTrainer(Trainer):
                         }
                         eval_metrics.update(evaluator.evaluate(**eval_args))
                     self.log(eval_metrics)
+                    
+                    # Clean GPU memory after evaluations to prevent OOM in training
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
                 else:
                     logger.warning(
                         "Custom evaluator can be run with this Trainer only when a single accelerator process is running."

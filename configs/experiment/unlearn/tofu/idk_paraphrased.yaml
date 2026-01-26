@@ -2,9 +2,9 @@
 
 defaults:
   - override /model: Llama-3.2-1B-Instruct
-  - override /trainer: GradAscent
-  - override /data: unlearn
-  - override /data/datasets@data.forget: TOFU_QA_forget
+  - override /trainer: DPO
+  - override /data: unlearn_withParaQ
+  - override /data/datasets@data.forget: TOFU_QA_forget_augmented_idk
   - override /data/datasets@data.retain: TOFU_QA_retain
   - override /eval: tofu
 
@@ -29,10 +29,16 @@ eval:
 data:
   anchor: forget
   forget:
-    TOFU_QA_forget: 
+    TOFU_QA_forget_augmented_idk:  # ⬅️ Dataset idk con parafrasi
+      handler: AugmentedQAwithIdkDataset  # ⬅️ Handler specifico per IDK
       args:
-        hf_args:
-          name: ${forget_split}
+        json_path: data/tofu_${forget_split}_augmented.json
+        idk_path: data/idk.jsonl
+        question_key: question
+        answer_key: answer
+        max_length: 512
+        num_paraphrases_per_question: 5
+        include_original: true
   retain:
     TOFU_QA_retain:
       args:
@@ -41,13 +47,11 @@ data:
 
 trainer:
   args:
-    warmup_epochs: 1.0 # custom parameter
-    # learning_rate: 1e-5
+    warmup_epochs: 1.0
+    learning_rate: 1e-5
     weight_decay: 0.01
     num_train_epochs: 10
-    per_device_eval_batch_size: 4  # Ridotto da 16 per evitare OOM
-    eval_on_start: False
-    # save_strategy: steps
-    # save_steps: 0.5
+    per_device_eval_batch_size: 4
+    eval_on_start: false
 
 task_name: ???
