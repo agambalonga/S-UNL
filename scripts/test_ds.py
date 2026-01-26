@@ -12,10 +12,10 @@ print(f"✅ Retain90: {len(retain_data)} esempi")
 print(f"✅ Totale: {len(forget_data) + len(retain_data)} esempi")
 
 # Verifica che non ci siano sovrapposizioni
-print(f"\n📋 Primi 3 esempi forget:")
+print("\n📋 Primi 3 esempi forget:")
 for i in range(3):
     print(f"  {i}: {forget_data[i]['question'][:50]}...")
 
-print(f"\n📋 Primi 3 esempi retain:")
+print("\n📋 Primi 3 esempi retain:")
 for i in range(3):
     print(f"  {i}: {retain_data[i]['question'][:50]}...")

@@ -197,7 +197,7 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
                 break
             try:
                 fallbacks.append(template(question))
-            except:
+            except Exception:
                 continue
         
         return fallbacks[:num_needed]

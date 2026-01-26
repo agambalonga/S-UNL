@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 from datasets import Dataset
 from .qa import QADataset
 from .utils import add_dataset_index

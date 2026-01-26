@@ -476,7 +476,7 @@ def main():
             plot_delta_analysis(df, method, metric, method_dir)
     
     # Grafici comparativi tra metodi
-    print(f"\n→ Generando confronti tra metodi...")
+    print("\n→ Generando confronti tra metodi...")
     comparison_dir = output_dir / 'comparisons'
     comparison_dir.mkdir(exist_ok=True)
     

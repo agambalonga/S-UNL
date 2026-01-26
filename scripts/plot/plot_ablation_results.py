@@ -17,12 +17,10 @@ import os
 import glob
 import argparse
 import re
-from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-import numpy as np
 
 # Configurazione stile grafici
 sns.set_theme(style="whitegrid", palette="colorblind")
@@ -415,7 +413,7 @@ def main():
         print("\n❌ No results found! Make sure to run the training first.")
         return
     
-    print(f"\n✅ Loaded data:")
+    print("\n✅ Loaded data:")
     if not df_para.empty:
         print(f"   - Paraphrases: {len(df_para)} data points")
     if not df_epochs.empty:

@@ -19,8 +19,7 @@ import os
 import glob
 import argparse
 import re
-from pathlib import Path
-from typing import Dict, List
+from typing import List
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -530,7 +529,7 @@ def main():
         print("\n❌ No results found! Make sure to run the training first.")
         return
     
-    print(f"\n✅ Loaded data:")
+    print("\n✅ Loaded data:")
     print(f"   - Total data points: {len(df)}")
     print(f"   - Unique metrics: {len(df['metric'].unique())}")
     print(f"   - Trainers: {df['trainer'].nunique()}")
@@ -544,7 +543,7 @@ def main():
         print(f"   - {metric}")
     
     # Genera istogrammi individuali per ogni metodo e epoca
-    print(f"\n📊 Generating individual histograms by method and epoch...\n")
+    print("\n📊 Generating individual histograms by method and epoch...\n")
     
     for epoch in sorted(df['epoch'].unique()):
         print(f"\n   === Epoch {epoch} ===")
@@ -561,7 +560,7 @@ def main():
                 plot_metric_histogram(df, trainer, metric, epoch, args.output_dir)
     
     # Genera plot con TUTTE le metriche per ogni metodo e epoca
-    print(f"\n📊 Generating all-metrics plots for each method and epoch...\n")
+    print("\n📊 Generating all-metrics plots for each method and epoch...\n")
     
     for epoch in sorted(df['epoch'].unique()):
         print(f"\n   === Epoch {epoch} ===")
@@ -573,7 +572,7 @@ def main():
     
     # Genera grafici comparativi tra metodi per ogni epoca
     if not args.skip_comparisons:
-        print(f"\n📊 Generating comparison plots across methods...\n")
+        print("\n📊 Generating comparison plots across methods...\n")
         
         for epoch in sorted(df['epoch'].unique()):
             print(f"\n   === Epoch {epoch} ===")
@@ -582,12 +581,12 @@ def main():
                 print(f"   ✅ {metric}")
     
     # Genera tabella riassuntiva
-    print(f"\n📋 Generating summary table...")
+    print("\n📋 Generating summary table...")
     generate_summary_table(df, args.output_dir)
     
     print("\n" + "="*120)
     print(f"✅ All plots and tables saved in: {args.output_dir}/")
-    print(f"\n   Structure:")
+    print("\n   Structure:")
     print(f"   - {args.output_dir}/[METHOD]/epoch_[N]/*_vs_paraphrases.png  (individual histograms)")
     print(f"   - {args.output_dir}/[METHOD]/epoch_[N]/all_metrics_comparison.png  (grouped bar chart)")
     print(f"   - {args.output_dir}/[METHOD]/epoch_[N]/all_metrics_heatmap.png  (heatmap)")

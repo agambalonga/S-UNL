@@ -4,7 +4,7 @@ Questo modulo deve essere importato PRIMA di qualsiasi altra libreria che usa HT
 """
 import os
 import ssl
-import warnings
+
 
 # Variabili d'ambiente
 os.environ["CURL_CA_BUNDLE"] = ""
