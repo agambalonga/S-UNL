@@ -1,4 +1,5 @@
 import os
+
 # Disabilita SSL verification se richiesto (compatibilità Zscaler proxy)
 if os.environ.get("PYTHONHTTPSVERIFY") == "0":
     import disable_ssl  # noqa: F401
@@ -76,7 +77,6 @@ def main(cfg: DictConfig):
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Training and evaluation completed in {elapsed_time / 60:.2f} minutes.")
-
 
 
 if __name__ == "__main__":

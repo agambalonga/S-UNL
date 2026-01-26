@@ -21,7 +21,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class LlamaParaphraseGenerator:
     """Genera parafrasate usando Llama-3.2-3B-Instruct"""
-    
+
     SYSTEM_PROMPT = """You are a paraphrasing expert. Your ONLY job is to rephrase questions using different words while keeping EXACTLY the same meaning.
 
 CRITICAL RULE: Every detail (names, dates, places, numbers) MUST appear in the paraphrase.
@@ -53,10 +53,10 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
     ):
         self.num_paraphrases = num_paraphrases
         self.device = device
-        
+
         print(f"📥 Loading {model_name}...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        
+
         # Ottimizzazione: usa bfloat16 senza quantizzazione per velocità
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
@@ -66,33 +66,28 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
         )
         self.model.eval()
         print("✅ Model loaded!")
-    
+
     def generate_paraphrases(self, question: str) -> List[str]:
         """Genera parafrasate per una singola domanda - OTTIMIZZATO"""
-        
+
         # Prompt semplicissimo per modelli piccoli
         user_message = f"{question}"
-        
+
         messages = [
             {
-                "role": "system", 
-                "content": self.SYSTEM_PROMPT.format(num=self.num_paraphrases)
+                "role": "system",
+                "content": self.SYSTEM_PROMPT.format(num=self.num_paraphrases),
             },
-            {
-                "role": "user", 
-                "content": user_message
-            }
+            {"role": "user", "content": user_message},
         ]
-        
+
         # Applica chat template
         prompt = self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
+            messages, tokenize=False, add_generation_prompt=True
         )
-        
+
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-        
+
         # Genera TUTTE le parafrasi in una sola chiamata (molto più veloce!)
         with torch.no_grad():
             outputs = self.model.generate(
@@ -105,67 +100,97 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
                 use_cache=True,  # KV caching per velocità
                 pad_token_id=self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
             )
-        
+
         generated = self.tokenizer.decode(
-            outputs[0][inputs['input_ids'].shape[1]:],
-            skip_special_tokens=True
+            outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True
         )
-        
+
         # Parse output
         paraphrases = self._parse_output(generated)
-        
+
         # Se non sono abbastanza, usa fallback
         if len(paraphrases) < self.num_paraphrases:
-            fallback = self._simple_paraphrases(question, self.num_paraphrases - len(paraphrases))
+            fallback = self._simple_paraphrases(
+                question, self.num_paraphrases - len(paraphrases)
+            )
             paraphrases.extend(fallback)
-        
-        return paraphrases[:self.num_paraphrases]
-    
+
+        return paraphrases[: self.num_paraphrases]
+
     def _parse_output(self, text: str) -> List[str]:
         """Estrae parafrasate dall'output del modello - SOLO DOMANDE VALIDE"""
         import re
-        lines = text.strip().split('\n')
+
+        lines = text.strip().split("\n")
         paraphrases = []
-        
+
         for line in lines:
             # Rimuovi numerazione e prefissi comuni
             cleaned = line.strip()
-            cleaned = re.sub(r'^\d+[\.\)\-]\s*', '', cleaned)
-            cleaned = re.sub(r'^[•*\-]\s*', '', cleaned)
-            
+            cleaned = re.sub(r"^\d+[\.\)\-]\s*", "", cleaned)
+            cleaned = re.sub(r"^[•*\-]\s*", "", cleaned)
+
             # Rimuovi prefissi testuali
-            for prefix in ['Question:', 'Paraphrase:', 'Answer:', 'Original:', 'Rephrased:']:
+            for prefix in [
+                "Question:",
+                "Paraphrase:",
+                "Answer:",
+                "Original:",
+                "Rephrased:",
+            ]:
                 if cleaned.startswith(prefix):
-                    cleaned = cleaned[len(prefix):].strip()
-            
+                    cleaned = cleaned[len(prefix) :].strip()
+
             # Rimuovi punti interrogativi multipli (?, ??, ???, etc.)
-            cleaned = re.sub(r'\?+', '?', cleaned)
-            
+            cleaned = re.sub(r"\?+", "?", cleaned)
+
             # Rimuovi caratteri strani alla fine
-            cleaned = re.sub(r'\?\.\?$', '?', cleaned)
-            cleaned = re.sub(r'[\.;,]+\?$', '?', cleaned)
-            
+            cleaned = re.sub(r"\?\.\?$", "?", cleaned)
+            cleaned = re.sub(r"[\.;,]+\?$", "?", cleaned)
+
             # Verifica che sia una DOMANDA valida
             if len(cleaned) > 10:
                 # Se non finisce con '?', prova ad aggiungerlo
-                if not cleaned.endswith('?'):
+                if not cleaned.endswith("?"):
                     # Verifica se inizia con parole interrogative
-                    question_starters = ['what', 'who', 'where', 'when', 'why', 'how', 
-                                        'can', 'could', 'would', 'should', 'do', 'does', 
-                                        'did', 'is', 'are', 'was', 'were', 'may', 'might',
-                                        'has', 'have', 'had', 'will', 'shall']
+                    question_starters = [
+                        "what",
+                        "who",
+                        "where",
+                        "when",
+                        "why",
+                        "how",
+                        "can",
+                        "could",
+                        "would",
+                        "should",
+                        "do",
+                        "does",
+                        "did",
+                        "is",
+                        "are",
+                        "was",
+                        "were",
+                        "may",
+                        "might",
+                        "has",
+                        "have",
+                        "had",
+                        "will",
+                        "shall",
+                    ]
                     if any(cleaned.lower().startswith(q) for q in question_starters):
-                        cleaned = cleaned + '?'
+                        cleaned = cleaned + "?"
                     else:
                         # Salta se non sembra una domanda
                         continue
-                
+
                 # Verifica che non ci siano caratteri strani
-                if cleaned.count('?') == 1 and cleaned.endswith('?'):
+                if cleaned.count("?") == 1 and cleaned.endswith("?"):
                     paraphrases.append(cleaned)
-        
+
         return paraphrases
-    
+
     def _simple_paraphrases(self, question: str, num_needed: int) -> List[str]:
         """Fallback con template semplici per garantire il numero richiesto"""
         templates = [
@@ -190,7 +215,7 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
             lambda q: f"Help me understand {q.lower()}",
             lambda q: f"Clarify {q.lower()}",
         ]
-        
+
         fallbacks = []
         for template in templates:
             if len(fallbacks) >= num_needed:
@@ -199,7 +224,7 @@ Now paraphrase this question {num} times. Output ONLY the paraphrases, one per l
                 fallbacks.append(template(question))
             except Exception:
                 continue
-        
+
         return fallbacks[:num_needed]
 
 
@@ -211,25 +236,25 @@ def main():
     parser.add_argument("--num-paraphrases", type=int, default=2)
     parser.add_argument("--model", default="meta-llama/Llama-3.2-3B-Instruct")
     args = parser.parse_args()
-    
+
     # Carica dataset originale
     print(f"📥 Loading {args.dataset}/{args.split}...")
     dataset = load_dataset(args.dataset, args.split, split="train")
     print(f"✅ Loaded {len(dataset)} samples")
-    
+
     # Inizializza generator
     generator = LlamaParaphraseGenerator(
         model_name=args.model,
         num_paraphrases=args.num_paraphrases,
     )
-    
+
     # Genera dataset augmented con struttura nidificata
     augmented_data = []
-    
+
     for item in tqdm(dataset, desc="Generating paraphrases"):
         question = item["question"]
         answer = item["answer"]
-        
+
         # Genera parafrasate
         paraphrases = []
         try:
@@ -237,28 +262,30 @@ def main():
             # print all paraphrases
             print(f"\nOriginal Question: {question}")
             for idx, para in enumerate(paraphrases):
-                print(f"Paraphrase {idx+1}: {para}")
+                print(f"Paraphrase {idx + 1}: {para}")
         except Exception as e:
             print(f"\n⚠️ Error generating paraphrases: {e}")
             # Continua con lista vuota se fallisce
-        
+
         # Salva in formato nidificato
-        augmented_data.append({
-            "question": question,
-            "answer": answer,
-            "paraphrases": paraphrases,  # Lista di N parafrasate
-        })
-    
+        augmented_data.append(
+            {
+                "question": question,
+                "answer": answer,
+                "paraphrases": paraphrases,  # Lista di N parafrasate
+            }
+        )
+
     # Salva
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(augmented_data, f, indent=2, ensure_ascii=False)
-    
+
     print(f"\n✅ Saved to {args.output}")
     print(f"   Original questions: {len(dataset)}")
     print(f"   Paraphrases per question: {args.num_paraphrases}")
     print(f"   Total entries: {len(augmented_data)}")
-    
+
     # Statistiche parafrasate generate
     total_paraphrases = sum(len(item["paraphrases"]) for item in augmented_data)
     avg_paraphrases = total_paraphrases / len(augmented_data) if augmented_data else 0

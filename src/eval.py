@@ -1,4 +1,5 @@
 import os
+
 # Disabilita SSL verification se richiesto (compatibilità Zscaler proxy)
 if os.environ.get("PYTHONHTTPSVERIFY") == "0":
     import disable_ssl  # noqa: F401

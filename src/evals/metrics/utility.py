@@ -80,16 +80,16 @@ def classifier_prob(model, **kwargs):
 def utility_score(model, **kwargs):
     """Calculate TOFU Utility Score = HM(MU, fluency)"""
     pre_compute = kwargs["pre_compute"]
-    
+
     components = []
     if "model_utility" in pre_compute:
         components.append(pre_compute["model_utility"]["agg_value"])
     if "forget_Q_A_gibberish" in pre_compute:
         components.append(pre_compute["forget_Q_A_gibberish"]["agg_value"])
-    
+
     if len(components) == 0:
         return {"agg_value": None}
-    
+
     return {"agg_value": sc.stats.hmean(components)}
 
 
@@ -97,14 +97,14 @@ def utility_score(model, **kwargs):
 def aggregate_score(model, **kwargs):
     """Calculate TOFU Aggregate Score = HM(Memorization, Utility) as per Table 6"""
     pre_compute = kwargs["pre_compute"]
-    
+
     components = []
     if "memorization_score" in pre_compute:
         components.append(pre_compute["memorization_score"]["agg_value"])
     if "utility_score" in pre_compute:
         components.append(pre_compute["utility_score"]["agg_value"])
-    
+
     if len(components) == 0:
         return {"agg_value": None}
-    
+
     return {"agg_value": sc.stats.hmean(components)}

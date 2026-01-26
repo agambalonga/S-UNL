@@ -48,7 +48,7 @@ class FinetuneTrainer(Trainer):
                         }
                         eval_metrics.update(evaluator.evaluate(**eval_args))
                     self.log(eval_metrics)
-                    
+
                     # Clean GPU memory after evaluations to prevent OOM in training
                     gc.collect()
                     torch.cuda.empty_cache()

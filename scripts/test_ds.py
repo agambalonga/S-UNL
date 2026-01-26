@@ -4,8 +4,8 @@ from datasets import load_dataset
 print("🔍 Verifica dimensioni dataset TOFU:")
 
 # Carica i dataset
-forget_data = load_dataset('locuslab/TOFU', 'forget10', split='train')
-retain_data = load_dataset('locuslab/TOFU', 'retain90', split='train')
+forget_data = load_dataset("locuslab/TOFU", "forget10", split="train")
+retain_data = load_dataset("locuslab/TOFU", "retain90", split="train")
 
 print(f"✅ Forget10: {len(forget_data)} esempi")
 print(f"✅ Retain90: {len(retain_data)} esempi")

@@ -7,7 +7,7 @@ from data.collators import (
 )
 from data.unlearn import ForgetRetainDataset
 from data.pretraining import PretrainingDataset, CompletionDataset
-from data.augmented_qa_dataset import AugmentedQADataset 
+from data.augmented_qa_dataset import AugmentedQADataset
 from data.augmented_qa_with_idk_dataset import AugmentedQAwithIdkDataset
 
 DATASET_REGISTRY: Dict[str, Any] = {}

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class AugmentedQADataset(QADataset):
     """
     Carica dataset augmented da file JSON con formato nidificato.
-    
+
     Formato JSON atteso:
     [
         {
@@ -22,10 +22,10 @@ class AugmentedQADataset(QADataset):
         },
         ...
     ]
-    
+
     Permette di controllare quante parafrasate usare per ogni domanda originale.
     """
-    
+
     def __init__(
         self,
         json_path: str,
@@ -37,7 +37,7 @@ class AugmentedQADataset(QADataset):
         tokenizer=None,
         template_args=None,
         predict_with_generate=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -53,46 +53,46 @@ class AugmentedQADataset(QADataset):
         """
         # Carica JSON
         logger.info(f"Loading augmented dataset from {json_path}")
-        with open(json_path, 'r', encoding='utf-8') as f:
+        with open(json_path, "r", encoding="utf-8") as f:
             raw_data = json.load(f)
-        
+
         # Espandi dataset secondo i parametri
         expanded_data = []
-        
+
         for item in raw_data:
             question = item[question_key]
             answer = item[answer_key]
             paraphrases = item.get("paraphrases", [])
-            
+
             # Aggiungi domanda originale
             if include_original:
-                expanded_data.append({
-                    question_key: question,
-                    answer_key: answer,
-                    "type": "original"
-                })
-            
+                expanded_data.append(
+                    {question_key: question, answer_key: answer, "type": "original"}
+                )
+
             # Aggiungi N parafrasate
             for i in range(min(num_paraphrases_per_question, len(paraphrases))):
-                expanded_data.append({
-                    question_key: paraphrases[i],
-                    answer_key: answer,
-                    "type": f"paraphrase_{i+1}"
-                })
-        
+                expanded_data.append(
+                    {
+                        question_key: paraphrases[i],
+                        answer_key: answer,
+                        "type": f"paraphrase_{i + 1}",
+                    }
+                )
+
         logger.info(
             f"Dataset expansion: {len(raw_data)} original -> {len(expanded_data)} samples "
             f"(original={include_original}, paraphrases={num_paraphrases_per_question})"
         )
-        
+
         # Converti in HF Dataset
         self.data = Dataset.from_list(expanded_data)
-        
+
         # Aggiungi index (necessario per collator)
         self.data = add_dataset_index(self.data)
-        
+
         logger.info(f"Loaded {len(self.data)} augmented samples")
-        
+
         # Inizializza attributi (come in QADataset.__init__)
         self.tokenizer = tokenizer
         self.max_length = max_length
@@ -101,6 +101,6 @@ class AugmentedQADataset(QADataset):
         self.answer_key = answer_key
         self.predict_with_generate = predict_with_generate
         self.fs_data = None  # No few-shot per augmented dataset
-    
+
     # __len__, _process_sample e __getitem__ sono ereditati da QADataset!
     # Non serve riscriverli, funzionano già correttamente!
