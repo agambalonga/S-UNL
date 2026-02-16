@@ -1,0 +1,94 @@
+\chapter{Formulazione del Problema}
+\label{chap:problem_formulation}
+Questo capitolo introduce una formulazione rigorosa del problema del \emph{machine unlearning} nei modelli di linguaggio di grandi dimensioni. 
+Dopo aver delineato nel capitolo introduttivo il contesto generale e le principali motivazioni, qui formalizziamo in modo preciso gli elementi concettuali e matematici che caratterizzano il processo di rimozione selettiva dell’informazione. 
+In particolare, vengono esplicitate le assunzioni operative, gli obiettivi di ottimizzazione e i vincoli che definiscono le diverse impostazioni del problema, seguendo e generalizzando la tassonomia proposta in recenti lavori in letteratura \cite{liu2024rethinkingmachineunlearninglarge, openunlearning2025, geng2025comprehensivesurveymachineunlearning}. 
+Il capitolo fornisce inoltre una distinzione sistematica tra i principali paradigmi di unlearning, ponendo le basi teoriche per l’analisi dei metodi e delle metriche che verranno presentati nei capitoli successivi.
+
+\medskip
+
+\section{Formalizzazione di Base}
+
+Sia $\theta$ il vettore dei parametri di un modello di linguaggio già addestrato o fine-tuned rispetto a un insieme di dati supervisionati. L’obiettivo del processo di unlearning è modificare $\theta$ affinché il modello risultante, indicato con $\theta_{\mathrm{unl}}$, si comporti come se un sottoinsieme specifico di dati non fosse mai stato utilizzato durante l’addestramento.
+
+Definiamo pertanto due insiemi fondamentali:
+\begin{itemize}
+    \item \textbf{Forget set} $D_f$: l’insieme dei campioni la cui influenza deve essere rimossa.
+    \item \textbf{Retain set} $D_r$: l’insieme di dati per cui il modello deve invece preservare le capacità originarie.
+\end{itemize}
+
+Il comportamento desiderato è espresso attraverso un obiettivo di ottimizzazione che bilancia la rimozione e la conservazione dell'informazione. Una formulazione generale adottata dalla letteratura recente è:
+\begin{equation}
+\min_{\theta} \; \mathcal{L}(\theta)
+    = \min_{\theta} \left\{
+        - \mathcal{L}_f(\theta) + \lambda \, \mathcal{L}_r(\theta)
+    \right\},
+\label{eq:unlearning_objective}
+\end{equation}
+dove:
+\begin{itemize}
+    \item $\mathcal{L}_f(\theta)$ misura il grado di ``dimenticanza'' sul forget set $D_f$, penalizzando il modello quando continua a replicare, memorizzare o generalizzare informazioni che dovrebbero essere rimosse;
+    \item $\mathcal{L}_r(\theta)$ quantifica la perdita di utilità sulle rimanenti informazioni desiderate, valutate tramite $D_r$;
+    \item $\lambda \geq 0$ è un fattore di bilanciamento che regola la severità del forgetting rispetto alla conservazione delle prestazioni.
+\end{itemize}
+
+Questa formulazione non impone una scelta particolare per le due componenti di loss: esse possono rappresentare errori di previsione, misure di divergenza, penalità di similarità verso $\theta_{\mathrm{ori}}$, oppure strutture più complesse basate su metriche di memorizzazione o propensione generativa. La sua generalità la rende adatta a descrivere un ampio spettro di tecniche di unlearning, dalle modifiche parametriche dirette ai metodi basati su retraining parziale.
+
+\section{Spazio delle Soluzioni e Vincoli}
+
+Il problema è reso complesso dalla natura distribuita dell’informazione nei modelli di grandi dimensioni: l’influenza di un singolo campione non è localizzabile in uno specifico sottoinsieme di parametri, ma risulta intrecciata con il contributo di migliaia di altri esempi. Per questo motivo, l’ottimizzazione \eqref{eq:unlearning_objective} deve soddisfare contemporaneamente due vincoli fondamentali:
+\begin{enumerate}
+    \item \textbf{Indistinguibilità dal retraining ideale}.  
+    $\theta_{\mathrm{unl}}$ dovrebbe approssimare il comportamento di un modello $\theta_{\mathrm{ret}}$ ottenuto riaddestrando da zero il modello su $D_r$, eliminando completamente $D_f$. Questo
+ modello è spesso inaccessibile nella pratica a causa del costo computazionale, ma rappresenta il punto di riferimento teorico.
+    
+    \item \textbf{Invarianza delle capacità generali}.  
+    L’unlearning non deve degradare in modo significativo la qualità complessiva del modello su task non correlati a $D_f$, incluse capacità linguistiche generali, reasoning e performance su benchmark esterni. Questo vincolo è cruciale soprattutto nel caso degli LLM di grandi dimensioni, dove la perdita di capacità generali comporta un valore operativo molto elevato.
+\end{enumerate}
+
+L'equilibrio tra questi vincoli definisce la difficoltà del problema: eliminare troppo aggressivamente l’informazione porta a un deterioramento globale del modello; agire in modo troppo conservativo porta a un forgetting incompleto o apparente.
+
+\section{Paradigmi di Unlearning}
+
+La letteratura più recente \cite{geng2025comprehensivesurveymachineunlearning} propone due formulazioni distinte del problema, che differiscono per la natura del modello di partenza e per il tipo di informazione che si intende eliminare. Non si tratta soltanto di un’operazione terminologica: i due scenari portano con sé vincoli operativi radicalmente diversi, sia in termini di accesso ai dati sia in relazione al comportamento che ci si aspetta dal modello dopo l’unlearning.
+
+\subsection{Paradigma \emph{Fine-Tuning-Then-Unlearning}}
+
+Il primo paradigma riguarda i casi in cui si dispone di un modello iniziale, $\theta_{\mathrm{pre}}$, pre-addestrato su un corpus generico. Questo modello viene adattato a un compito specifico attraverso un finetuning supervisionato, ottenendo un modello $\theta_{\mathrm{ori}}$ che incorpora l’influenza combinata dei dati di addestramento. In questo contesto, il forget set $D_f$ coincide con una porzione controllata del dataset utilizzato nel finetuning, mentre il retain set $D_r$ comprende i rimanenti esempi.
+
+Questa impostazione consente una descrizione particolarmente chiara del processo di unlearning, perché la struttura del problema è pienamente osservabile: sia $D_f$ sia $D_r$ sono noti, il contributo dei singoli esempi è relativamente isolabile, e il comportamento desiderato è definito rispetto a un modello di riferimento ottenuto tramite retraining su $D_r$.
+
+Come mostrato in Figura~\ref{fig:overview_unlearning}, il workflow tipico adotta una sequenza relativamente standard:
+\begin{enumerate}
+\item si esegue un finetuning iniziale su $D_f \cup D_r$, ottenendo $\theta_{\mathrm{ori}}$;
+\item si applica un metodo di unlearning, che può basarsi su ottimizzazione diretta, regolarizzazioni mirate, penalità di similarità oppure strategie di editing dei parametri;
+\item si valuta il modello finale $\theta_{\mathrm{unl}}$ confrontandolo sia con il comportamento ideale del modello riaddestrato su $D_r$, sia con le sue prestazioni generali su compiti non correlati.
+\end{enumerate}
+
+La chiarezza strutturale di questo paradigma ha reso possibile la creazione di benchmark sintetici, come TOFU \cite{maini2024tofu}, che costruiscono dati controllati allo scopo di verificare con precisione la capacità dei metodi di rimuovere informazione senza degradare il modello. Questi ambienti completamente osservabili costituiscono un laboratorio ideale per misurare separatamente il forgetting, la retention e la general utility.
+
+\begin{figure}[H] 
+\centering \includegraphics[scale=0.45]{img/overview_unlearning.png} 
+\caption{Schema del paradigma \emph{Fine-Tuning-Then-Unlearning}: il modello di base viene finetunato su $D_f \cup D_r$ e successivamente sottoposto a tecniche di unlearning per rimuovere l’influenza di $D_f$.} \label{fig:overview_unlearning} 
+\end{figure}
+
+\subsection{Paradigma \emph{Direct-Unlearning}}
+
+Un secondo scenario, concettualmente più complesso, si presenta quando il modello di partenza $\theta_{\mathrm{ori}}$ è il risultato di un pretraining su larga scala. In questo caso, l’insieme dei dati realmente utilizzati durante l’addestramento è spesso solo parzialmente noto oppure totalmente irrecuperabile, poiché deriva da corpora eterogenei, filtrati in modo automatico e quasi sempre non replicabili in modo identico.
+
+In tale contesto, il forget set $D_f$ non coincide più con “i dati da cui il modello ha appreso”, bensì con una rappresentazione proxy delle conoscenze che si desidera eliminare. Le modalità più comuni per costruirlo includono:
+\begin{itemize}
+\item il recupero di snapshot o porzioni del corpus originale, quando disponibili;
+\item l’estrazione da dataset pubblici che contengono conoscenze simili a quelle che il modello dovrebbe “dimenticare”;
+\item la costruzione di benchmark mirati alla rimozione di contenuti sensibili, come istruzioni potenzialmente pericolose o informazioni fattuali non più autorizzate alla divulgazione.
+\end{itemize}
+
+In questo paradigma, l’obiettivo dell’unlearning si estende oltre la rimozione della memorizzazione testuale. L’attenzione si sposta anche sulla mitigazione di competenze indesiderate che possono emergere in seguito al pretraining, ad esempio la capacità di generare dettagli tecnici su temi a rischio o contenuti che compromettono la sicurezza. In altre parole, l’unlearning qui si avvicina al modello di “editing controllato” del comportamento del modello, mantenendo però un orizzonte più ampio e sistemico: invece di intervenire su una singola conoscenza, si agisce sul modo in cui il modello generalizza e utilizza determinate parti della sua rappresentazione interna.
+
+Ne consegue che la definizione dei set $D_f$ e $D_r$ è meno rigida e spesso non coincide con una suddivisione naturale dei dati. Inoltre, la valutazione dell'unlearning richiede metriche più raffinate, capaci di distinguere tra semplice soppressione della memorizzazione e riduzione dell’abilità del modello di ragionare o generare contenuti collegati a ciò che si vuole eliminare.
+
+Questa complessità rende il paradigma di \emph{Direct-Unlearning} più realistico ma anche molto più difficile da analizzare in termini teorici: il comportamento del modello dipende da interazioni non lineari tra milioni di esempi di addestramento, e la rimozione di un singolo tipo di conoscenza può produrre effetti collaterali non immediatamente prevedibili.
+
+
+
+

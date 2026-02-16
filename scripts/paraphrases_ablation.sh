@@ -59,7 +59,7 @@ paraphrase_counts=(0 5 10 15 20)
 
 # Batch size ottimizzato per 16GB GPU
 per_device_train_batch_size=4
-gradient_accumulation_steps=4
+gradient_accumulation_steps=8
 
 # Path del modello base
 model_path="open-unlearning/tofu_${model}_full"

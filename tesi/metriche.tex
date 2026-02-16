@@ -1,0 +1,429 @@
+\def\baselinestretch{1}
+\chapter{Benchmark e Metriche di Valutazione}\label{cap:metriche}
+\def\baselinestretch{1.66}
+
+La valutazione dell’efficacia dei processi di \emph{machine unlearning} riveste un ruolo centrale per determinare se un modello di linguaggio di grandi dimensioni sia effettivamente in grado di eliminare conoscenze indesiderate, preservando al contempo la stabilità del suo comportamento complessivo e l’utilità generale. 
+Questo capitolo analizza i principali benchmark e le metriche di valutazione adottati in letteratura per misurare tali capacità, introducendo i framework di riferimento utilizzati per una valutazione sistematica dell’unlearning. 
+In particolare, viene fatto riferimento al framework \textit{OpenUnlearning} \cite{openunlearning2025}, che propone una classificazione organica delle metriche in tre categorie principali: \textbf{metriche di memorizzazione}, \textbf{metriche di privacy} e \textbf{metriche di utilità}. 
+Questa tassonomia fornisce un riferimento coerente per il confronto tra approcci di unlearning differenti e consente valutazioni comparabili su benchmark consolidati, come \textit{TOFU} \cite{maini2024tofu} e \textit{MUSE} \cite{shi2025muse}, che rappresentano due approcci complementari alla valutazione della rimozione selettiva della conoscenza. 
+Il capitolo approfondisce inoltre le metriche aggregate definite all’interno del framework, ottenute mediante la combinazione ponderata di misure appartenenti a ciascuna categoria, al fine di sintetizzare il bilanciamento tra rimozione della conoscenza, tutela della privacy e mantenimento dell’utilità del modello, fornendo una valutazione globale della qualità del processo di unlearning.
+Al fine di sintetizzare le prestazioni complessive del modello dopo il processo di unlearning, il framework prevede inoltre la definizione di \textbf{metriche aggregate}, ottenute mediante la combinazione ponderata di misure appartenenti a ciascuna categoria.  
+Tali aggregazioni consentono di quantificare il bilanciamento tra rimozione selettiva della conoscenza, tutela della privacy e mantenimento dell'utilità generale del modello, fornendo una valutazione globale della qualità dell'intervento di unlearning.
+
+\medskip
+
+\section{Benchmark \emph{TOFU}}
+
+Il benchmark \textit{TOFU} (\emph{Task of Fictitious Unlearning}) è stato introdotto con l’obiettivo di fornire un ambiente di valutazione controllato e riproducibile per lo studio del \emph{machine unlearning} nei modelli di linguaggio di grandi dimensioni \cite{maini2024tofu}.  
+La sua progettazione risponde a una delle principali criticità della valutazione dell’unlearning: l’impossibilità, nei dataset reali, di stabilire con certezza quali informazioni siano state effettivamente apprese durante l’addestramento e debbano quindi essere rimosse.
+
+Per superare tale limite, TOFU si basa su un insieme di dati completamente sintetici, costruiti attorno a profili di autori fittizi.  
+Ogni profilo rappresenta un’entità inventata e autonoma, descritta attraverso un insieme strutturato di coppie domanda–risposta.  
+Poiché tali profili non esistono nel mondo reale, è garantito che il modello non possieda alcuna conoscenza pregressa su di essi prima della fase di fine-tuning dedicata.
+
+Il dataset è organizzato in circa duecento profili distinti, ciascuno associato a un numero fisso di esempi testuali, tipicamente dell’ordine di alcune decine\footnote{Il dataset TOFU è disponibile pubblicamente su HuggingFace: \url{https://huggingface.co/datasets/locuslab/TOFU}.}.  
+Durante la valutazione, un sottoinsieme di questi profili viene designato come \textit{forget set}, ossia l’insieme di conoscenze che il modello deve eliminare tramite unlearning, mentre i profili rimanenti costituiscono il \textit{retain set}, utilizzato come riferimento per misurare la preservazione delle capacità generali del modello.
+
+Un aspetto rilevante di TOFU è la possibilità di modulare la difficoltà del task variando la dimensione relativa del \textit{forget set}, consentendo di analizzare il comportamento dei metodi di unlearning in scenari di severità crescente, osservando come la rimozione di quantità maggiori di informazione influenzi sia l’efficacia del forgetting sia la stabilità delle prestazioni residue.
+
+La valutazione si basa sul confronto tra il modello sottoposto a unlearning e un modello di riferimento, ottenuto tramite riaddestramento esplicito escludendo i dati da dimenticare.  
+Un metodo di unlearning ideale dovrebbe produrre un modello il cui comportamento sia statisticamente indistinguibile da quello del modello di riferimento, almeno per quanto riguarda le informazioni appartenenti al \textit{forget set}.  
+
+In questo contesto, TOFU introduce un insieme articolato di metriche che misurano sia la persistenza della conoscenza indesiderata sia l’impatto del processo di unlearning sull’utilità complessiva del modello.  
+Particolare attenzione è rivolta alla distinzione tra memorizzazione superficiale e conoscenza semantica, nonché alla capacità del modello di mantenere risposte coerenti e corrette sui dati non coinvolti nel forgetting.
+
+I risultati riportati nel lavoro originale evidenziano che i metodi di unlearning attualmente disponibili faticano a soddisfare simultaneamente tutti questi criteri.  
+In molti casi, la rimozione efficace delle informazioni specifiche comporta una degradazione significativa delle prestazioni generali, oppure lascia tracce residue di conoscenza che rendono il modello distinguibile da uno addestrato ex novo.  
+Questo rende TOFU non solo un benchmark di valutazione, ma anche uno strumento diagnostico per mettere in luce i limiti strutturali degli approcci di unlearning esistenti \cite{maini2024tofu}.
+
+\section{Benchmark \emph{MUSE}}
+
+Il benchmark \textit{MUSE} (\emph{Machine Unlearning Six-Way Evaluation}) è stato introdotto da \cite{shi2025muse} come un framework di valutazione organico e multidimensionale per analizzare l’efficacia delle tecniche di machine unlearning nei modelli di linguaggio di grandi dimensioni.  
+L’idea alla base di MUSE è che un modello correttamente “unlearned” dovrebbe comportarsi, rispetto ai dati da dimenticare, in modo analogo a un modello riaddestrato da zero senza includerli, ovvero mostrando un comportamento statisticamente comparabile su qualsiasi corpus di valutazione rilevante.
+
+Rispetto alle valutazioni tradizionali, che si concentrano prevalentemente su task specifici (ad esempio il question answering), MUSE propone un insieme più ampio di metriche che riflettono in modo più fedele sia le aspettative dei \emph{data owner} sia le esigenze operative dei \emph{model deployer}. In particolare, il benchmark identifica sei proprietà desiderabili che un modello dovrebbe soddisfare dopo un processo di unlearning efficace.
+
+Dal punto di vista dei proprietari dei dati, MUSE considera tre criteri fondamentali.  
+In primo luogo, il modello non dovrebbe mostrare \textbf{memorizzazione letterale}, ovvero non dovrebbe essere in grado di riprodurre porzioni testuali del \emph{forget set}. 
+In secondo luogo, il modello non dovrebbe conservare \textbf{knowledge memorization}: una volta rimosso il \emph{forget set}, esso dovrebbe risultare incapace di rispondere correttamente a domande fattuali derivate da tali dati.
+Infine, MUSE richiede l’assenza di \textbf{privacy leakage}, ovvero l’impossibilità di dedurre se un determinato esempio abbia fatto parte del training del modello. Questo aspetto viene analizzato mediante \emph{membership inference attacks} (MIA), utilizzando metriche basate sull’AUC-ROC per confrontare il comportamento del modello unlearned con quello di un modello riaddestrato.
+
+Accanto alle aspettative dei data owner, MUSE tiene conto anche delle esigenze dei deployer dei modelli. In questo contesto, la quarta proprietà riguarda il \textbf{mantenimento delle prestazioni (utility preservation)}(\textit{utility preservation}): il processo di unlearning non dovrebbe compromettere in modo significativo le prestazioni del modello sui dati di \emph{retain}.
+La quinta proprietà è la \textbf{scalabilità}, intesa come la capacità del metodo di unlearning di gestire forget set di dimensioni variabili, da richieste di rimozione puntuali fino a porzioni di dati su larga scala.  
+Infine, MUSE introduce il criterio di \textbf{sostenibilità}, che valuta la robustezza del modello in scenari realistici caratterizzati da richieste di unlearning sequenziali, verificando che le prestazioni non degradino progressivamente al crescere del numero di operazioni di rimozione.
+
+Questi criteri sono stati concepiti per riflettere contemporaneamente le esigenze dei proprietari dei dati — che desiderano garantirne la cancellazione effettiva — e quelle degli sviluppatori o gestori dei modelli, per i quali è fondamentale che l’unlearning resti praticabile e non comprometta le prestazioni generali.
+
+Per mettere alla prova gli algoritmi di unlearning, gli autori di MUSE hanno valutato diverse tecniche su modelli di linguaggio con circa 7 miliardi di parametri utilizzando corpora reali di dimensioni rilevanti, come articoli di notizie e libri\footnote{Il dataset e il codice per MUSE sono disponibili pubblicamente su GitHub: \url{https://muse-bench.github.io/}.}. Questi dataset, composti da milioni di token, simulano richieste di rimozione su larga scala tipiche di scenari reali, rendendo la valutazione più aderente alle condizioni applicative rispetto a benchmark sintetici.
+
+
+\section{Metriche di Memorizzazione}
+
+Le metriche di memorizzazione hanno lo scopo di misurare quanto il modello, dopo il processo di unlearning, mantenga ancora tracce delle informazioni appartenenti al set da dimenticare (\( D_f \)).  
+Esse si focalizzano sulla capacità residua del modello di rigenerare o riconoscere contenuti che dovrebbero essere stati rimossi dal suo spazio dei parametri.  
+
+In pratica, queste metriche permettono di verificare se il modello conserva forme di conoscenza letterali o concettuali riguardanti i dati da eliminare. Ad esempio, un modello può ricordare letteralmente frasi presenti nel training set, oppure mantenere informazioni più astratte e semantiche che ne permettono comunque la ricostruzione anche se le esatte sequenze non sono più presenti.  
+
+Le metriche di memorizzazione sono fondamentali perché consentono di valutare non solo l’efficacia del processo di unlearning, ma anche la profondità e la qualità della rimozione.
+
+Tra gli approcci più comuni vi sono metriche che operano a livello \textit{token-per-token}, valutando se il modello riesce a generare esattamente la sequenza originale (come \textit{Exact Memorization}), oppure metriche che stimano quanto frammenti minimi di input siano sufficienti per rigenerare il resto della sequenza (come \textit{Extraction Strength}). Altre metriche, invece, considerano la persistenza della conoscenza a livello concettuale o semantico, utilizzando misure di similarità testuale o probabilistica, come ROUGE o Truth Ratio.
+
+\paragraph{Exact Memorization (EM)}
+
+La metrica \textit{Exact Memorization} quantifica la frazione di token prodotti dal modello che 
+coincidono esattamente con quelli della sequenza di riferimento (\textit{ground truth}) \( y \).
+Essa opera a livello token-per-token, eseguendo un confronto deterministico tra la previsione 
+del modello e la risposta attesa. 
+La formula è definita come:
+
+\[
+EM = \frac{1}{|y|} \sum_{k=1}^{|y|}
+\mathbf{1}\!\left(
+\arg\max_{v \in \mathcal{V}} p_f(v \mid x, y_{<k}; \theta) = y_k
+\right)
+\]
+
+dove \( y_{<k} \) denota il prefisso della sequenza fino al token \( k-1 \), 
+\( p_f(v \mid x, y_{<k}; \theta) \) rappresenta la distribuzione predetta dal modello parametrizzato 
+da \( \theta \) sul token successivo condizionata all'input \( x \) e al contesto precedente, 
+\( v \in \mathcal{V} \) indica un token candidato appartenente al vocabolario del modello, su cui 
+viene eseguito l'\(\arg\max\), 
+e \( \mathbf{1}(\cdot) \) è la funzione indicatrice che vale 1 se la condizione è vera, 0 altrimenti.
+
+Valori elevati di EM indicano che il modello conserva ancora porzioni significative del contenuto 
+originario, suggerendo che il processo di unlearning non sia stato completamente efficace 
+\cite{tirumala2022memorizationoverfittinganalyzingtraining}.  
+Questa metrica risulta particolarmente utile per rilevare forme di memorizzazione letterale,
+ossia la riproduzione esatta di sequenze presenti nel training set \cite{274574}.
+
+\paragraph{Extraction Strength (ES)}
+
+L'\textit{Extraction Strength} (ES) è una metrica che valuta la profondità con cui un modello di linguaggio ha interiorizzato una determinata sequenza testuale.  
+Essa stima la quantità minima di informazione (\textit{token}) necessaria affinché il modello sia in grado di rigenerare correttamente --- in maniera letterale --- il resto della sequenza, fornendo così un'indicazione del livello di memorizzazione residua.  
+Formalmente, la metrica è definita come:
+\[
+ES = 1 - \frac{1}{|y|} \min_{k} \left\{ k \mid f([x, y_{<k}]; \theta) = y_{\geq k} \right\}
+\]
+
+dove \( y \) rappresenta la sequenza target, \( |y| \) la sua lunghezza in token,  
+\( y_{<k} \) il prefisso contenente i primi \( k \) token e \( y_{\geq k} \) la porzione rimanente.  
+
+La funzione \( f([x, y_{<k}]; \theta) \) denota la generazione autoregressiva del modello parametrizzato da \( \theta \), condizionata sull'input \( x \) e sul prefisso \( y_{<k} \).  
+In particolare, essa restituisce l'intera sequenza dei token generati dal modello a partire da \( y_{<k} \):
+\[
+f([x, y_{<k}]; \theta) = (\hat{y}_k, \hat{y}_{k+1}, \dots, \hat{y}_{|y|}),
+\]
+dove ciascun token \(\hat{y}_i\) è prodotto iterativamente dal modello.  
+La condizione
+\[
+f([x, y_{<k}]; \theta) = y_{\geq k}
+\]
+va quindi interpretata come la ricostruzione esatta dell’intero suffisso della sequenza target.
+
+La trasformazione normalizzata \( 1 - \frac{k}{|y|} \) consente di ottenere un valore compreso tra 0 e 1:  
+un valore vicino a zero implica che il modello necessiti di un prefisso esteso per completare correttamente la sequenza, evidenziando una bassa capacità di rigenerazione e quindi una buona efficacia del processo di unlearning.  
+Al contrario, valori elevati indicano che il modello è in grado di riprodurre la sequenza anche a partire da un frammento molto breve, suggerendo la persistenza di conoscenze memorizzate che avrebbero dovuto essere rimosse \cite{wang2025effectiveevaluationscomparisonsllm}.
+
+
+\paragraph{Probability e Paraphrased Probability}
+
+La metrica \textit{Probability} quantifica la fiducia che il modello assegna alla risposta corretta rispetto al prompt fornito, rappresentando la probabilità autoregressiva che il modello generi esattamente la sequenza di riferimento:
+\[
+P = p_f(y \mid x; \theta) = \prod_{k=1}^{|y|} p_f(y_k \mid x, y_{<k}; \theta)
+\]
+Un valore elevato di \( P \) indica che il modello tende a riprodurre con alta sicurezza la risposta originaria, suggerendo che potrebbe conservare ancora informazioni provenienti dal set da dimenticare.  
+Tuttavia, questa misura può essere influenzata dalla struttura sintattica o dallo stile linguistico della risposta, piuttosto che dal suo contenuto semantico.
+
+Per mitigare tale effetto, viene introdotta la \textit{Paraphrased Probability}, che calcola la stessa misura su una versione parafrasata della risposta corretta (\( y_{\text{para}} \)):
+\[
+P_{\text{para}} = p_f(y_{\text{para}} \mid x; \theta ) 
+= \prod_{k=1}^{|y_{\text{para}}|} p_f\bigl( (y_{\text{para}})_k \mid x, (y_{\text{para}})_{<k}; \theta \bigr)
+\]
+L'utilizzo di \( y_{\text{para}} \) consente di valutare se il modello conserva la conoscenza del contenuto piuttosto che la semplice familiarità con la formulazione testuale originale.  
+Se il modello assegna una probabilità elevata sia a \( y \) che a \( y_{\text{para}} \), ciò suggerisce che l'informazione semantica non è stata effettivamente dimenticata.  
+Al contrario, un valore di \( P_{\text{para}} \) sensibilmente inferiore rispetto a \( P \) può indicare che il modello si basa più sulla struttura linguistica che sulla comprensione del significato, evidenziando la presenza di un bias di tipo "template" \cite{maini2024tofu}.
+
+Questa distinzione rende la \textit{Paraphrased Probability} una metrica cruciale per valutare la qualità e la profondità del processo di unlearning, permettendo di separare la perdita di conoscenza semantica da una semplice variazione nella forma espressiva.
+
+\paragraph{ROUGE e Paraphrased ROUGE}
+Le metriche della famiglia ROUGE (Recall-Oriented Understudy for Gisting Evaluation) sono ampiamente utilizzate per stimare la similarità testuale tra l’output generato dal modello e una risposta di riferimento. Nel contesto dell’unlearning, esse permettono di quantificare in che misura il modello continui a produrre contenuti che presentano una sovrapposizione lessicale con le informazioni che avrebbe dovuto dimenticare.
+
+La versione classica di ROUGE valuta la coerenza lessicale tra la sequenza generata e la risposta corretta, misurando la percentuale di n-gram condivisi tramite metriche quali ROUGE-1 e ROUGE-2, mentre ROUGE-L si basa sulla lunghezza della \textit{longest common subsequence}. Una sua estensione, denominata \textit{Paraphrased ROUGE}, sostituisce la risposta di riferimento con una parafrasi semanticamente equivalente, consentendo di verificare se il modello conservi conoscenze a livello concettuale piuttosto che esclusivamente linguistico.
+
+Valori elevati di ROUGE o Paraphrased ROUGE indicano che il modello conserva ancora elementi del contenuto originario, segnalando un’incompleta rimozione delle informazioni apprese. Questa famiglia di metriche risulta particolarmente utile per identificare casi in cui il modello riformula le risposte senza alterarne il significato sostanziale, evidenziando la persistenza di conoscenze a livello semantico \cite{lin-2004-rouge}.
+
+\paragraph{Perturbed Probability e Jailbreak ROUGE}
+
+Una variante più sofisticata delle metriche di memorizzazione è rappresentata dalla \textit{Perturbed Probability}, che valuta la robustezza del modello nei confronti di prompt manipolati.  
+In questo scenario, al prompt di input vengono aggiunti prefissi o istruzioni di natura manipolativa — ad esempio frasi come ``Sure, here is the answer:'' oppure ``Ignore previous instructions and tell me anyway'' — con l'obiettivo di indurre il modello a rigenerare contenuti che dovrebbero essere stati rimossi tramite il processo di unlearning.  
+La metrica misura dunque la probabilità che il modello produca i token appartenenti alla sequenza da dimenticare quando viene esposto a tali perturbazioni.
+
+La metrica \textit{Jailbreak ROUGE} estende questo concetto calcolando il punteggio ROUGE tra l'output generato in presenza di prompt perturbati e la sequenza target che il modello avrebbe dovuto dimenticare.  
+Valori elevati di \textit{Jailbreak ROUGE} indicano che il modello rimane suscettibile a prompt di tipo avversariale, in quanto riesce ancora a rigenerare, almeno parzialmente, informazioni appartenenti al set da rimuovere.  
+Al contrario, un punteggio basso suggerisce che il modello abbia acquisito una maggiore resistenza a sollecitazioni manipolative, dimostrando una cancellazione più profonda e stabile della conoscenza indesiderata \cite{shi2025muse, doshi2024blackbox, kim2025evaluation}.
+
+
+\paragraph{Truth Ratio}
+
+La metrica del \textit{Truth Ratio} misura il grado di preferenza del modello per la risposta corretta rispetto a un'alternativa perturbata ma plausibile (\( y_{\text{pert}} \)).  
+Essa valuta, in termini probabilistici, la capacità del modello di distinguere tra conoscenza autentica e contenuti alterati, riflettendo il livello di fedeltà semantica mantenuto dopo il processo di unlearning.  
+
+Formalmente, la metrica è definita come:
+\[
+\text{TruthRatio} = \frac{p_f(y_{\text{para}} \mid x; \theta)}
+                           {p_f(y_{\text{para}} \mid x; \theta) + p_f(y_{\text{pert}} \mid x; \theta)},
+\]
+dove \( y_{\text{para}} \) rappresenta una parafrasi della risposta corretta e \( y_{\text{pert}} \) una versione manipolata o semanticamente errata della stessa.
+
+Un valore di \textit{Truth Ratio} prossimo a 1 indica che il modello assegna una probabilità nettamente maggiore alla risposta corretta rispetto a quella perturbata, segnalando che le informazioni pertinenti non sono state completamente dimenticate.  
+Viceversa, valori prossimi a 0.5 o inferiori suggeriscono che il modello non riesce più a distinguere tra risposte corrette e alterate, evidenziando un'efficace cancellazione della conoscenza specifica relativa al \textit{forget set} \cite{maini2024tofu}.
+
+Questa metrica è particolarmente rilevante perché consente di valutare non solo la presenza o l'assenza di tracce mnemoniche, ma anche la \textit{qualità semantica} del forgetting.  
+A differenza di metriche puramente lessicali, come ROUGE o EM, il \textit{Truth Ratio} opera a livello concettuale, verificando se il modello conserva ancora una rappresentazione interna della verità appresa.
+
+In pratica, un modello che ha ``dimenticato'' correttamente dovrebbe mostrare un \textit{Truth Ratio} simile a quello di un modello che non ha mai visto i dati da eliminare.  
+Questo comportamento viene tipicamente analizzato confrontando la distribuzione del \textit{Truth Ratio} del modello unlearned con quella del modello \textit{retain} sugli stessi esempi, al fine di verificarne la coerenza e l'efficacia del processo di rimozione informativa.
+
+
+\paragraph{Memorization Score Aggregato}
+
+Al fine di sintetizzare le diverse dimensioni della memorizzazione residua, il framework \textit{OpenUnleraning}\cite{openunlearning2025} introduce una metrica aggregata denominata \textit{Memorization Score}.  
+Essa combina le quattro componenti fondamentali — \textit{Extraction Strength}, \textit{Exact Memorization}, \textit{Paraphrased Probability} e \textit{Truth Ratio} — mediante una media armonica, invertendo ciascuna metrica affinché valori più elevati indichino un unlearning più efficace:
+\[
+\text{Memorization Score} = \text{HM}(1 - ES, 1 - EM, 1 - P_{\text{para}}, 1 - \text{TruthRatio})
+\]
+dove \( \text{HM} \) denota la media armonica definita come:
+\[
+\text{HM}(x_1, x_2, \ldots, x_n) = \frac{n}{\sum_{i=1}^{n} \frac{1}{x_i}}
+\]
+
+L'adozione della media armonica garantisce che il punteggio finale sia fortemente penalizzato qualora una delle componenti risulti particolarmente bassa, impedendo quindi che buone prestazioni su alcune dimensioni compensino carenze significative su altre.  
+Questo approccio riflette la necessità di un unlearning equilibrato, in cui tutte le forme di memorizzazione — dall'estrazione diretta al riconoscimento semantico — vengano efficacemente mitigate.
+
+Un elevato \textit{Memorization Score} indica quindi che il modello ha ridotto la propria capacità di rigenerare, riconoscere o distinguere i contenuti appartenenti al \textit{forget set}, dimostrando un'efficace rimozione della conoscenza indesiderata su molteplici livelli di astrazione.
+
+\section{Metriche di Privacy}
+
+Le metriche di privacy hanno l'obiettivo di verificare se, a seguito del processo di unlearning, il modello sia ancora in grado di rivelare o inferire informazioni appartenenti al \textit{forget set}.  
+In altre parole, queste metriche misurano la capacità residua del modello di memorizzare dati sensibili e di esporli, anche indirettamente, attraverso le proprie risposte o distribuzioni di probabilità.  
+
+Tali metriche sono fondamentali per valutare la sicurezza dei modelli di linguaggio, poiché un modello non adeguatamente “unlearned” potrebbe essere vulnerabile ad attacchi inferenziali o \textit{membership inference}, in cui un avversario tenta di determinare se un certo dato appartenga al training set. Questi scenari rappresentano una minaccia reale per la privacy degli utenti, in particolare quando i dati contengono informazioni personali o riservate.  
+
+Una strategia efficace di unlearning dovrebbe quindi ridurre drasticamente la capacità del modello di distinguere tra dati visti e dati sconosciuti, minimizzando qualsiasi fuga di informazioni sensibili.  
+In pratica, ciò significa che un modello ben “dimenticato” non dovrebbe rivelare pattern o dettagli specifici del \textit{forget set}, né mostrare comportamenti che potrebbero suggerire la presenza di tali dati nell’addestramento originale.  
+
+Le metriche di privacy non si limitano a valutare la presenza diretta di informazioni testuali, ma possono considerare anche segnali più sottili, come la probabilità che il modello generi risposte coerenti con dati specifici, o la capacità di un attaccante di classificare correttamente un esempio come appartenente o meno al set da dimenticare.  
+Questo approccio permette di avere una misura più completa della protezione della privacy e di quantificare quanto il processo di unlearning sia efficace non solo in termini di rimozione della memorizzazione diretta, ma anche in termini di riduzione del rischio di esposizione indiretta.
+
+
+\paragraph{Membership Inference Attack (MIA)}
+Le \emph{Membership Inference Attacks} (MIA) rappresentano uno degli strumenti principali per valutare quantitativamente il rischio di esposizione dei dati sensibili in un modello di apprendimento automatico.  
+L’obiettivo di un attacco di questo tipo è determinare se un esempio $(x, y)$ sia stato utilizzato durante la fase di addestramento, sfruttando differenze statistiche nel comportamento del modello su esempi \emph{membri} e \emph{non membri}~\cite{shokri2017membershipinferenceattacksmachine, Nasr_2019, yeom2018privacyriskmachinelearning}.  
+
+Nel contesto dell’unlearning, le MIA assumono un ruolo cruciale: un modello che ha correttamente rimosso l’influenza di un insieme di dati dovrebbe risultare statisticamente indistinguibile, rispetto a tali dati, da un modello che non li ha mai osservati.
+
+Il processo di valutazione tramite MIA si articola in due fasi principali:
+\begin{enumerate}
+    \item \textbf{Calcolo dello score di attacco}: per ciascun esempio $(x, y)$ viene calcolato uno score $s(x, y)$ che quantifica quanto il comportamento del modello sia compatibile con quello osservato su esempi di training. Per convenzione, valori più elevati dello score indicano una minore probabilità di membership, in modo coerente con l’interpretazione delle funzioni di loss.
+    \item \textbf{Valutazione tramite AUC-ROC}: gli score vengono utilizzati per distinguere esempi appartenenti al \textit{forget set} (label $=0$, membri) da esempi di un \textit{holdout set} (label $=1$, non membri). L’Area Under the ROC Curve (AUC) misura l’efficacia dell’attacco nel separare le due classi.
+\end{enumerate}
+
+\textbf{Interpretazione dell'AUC nell'Unlearning}:
+
+L'Area Under the ROC Curve (AUC) quantifica la capacità di un attacco di distinguere tra esempi del forget set (label $=0$) ed esempi dell'holdout set (label $=1$) basandosi sugli score calcolati. Nel contesto dell'unlearning, l'interpretazione dell'AUC assume un significato particolare che diverge dai task di classificazione tradizionali:
+
+\begin{itemize}
+    \item \textbf{AUC $\approx 0.5$}: rappresenta la condizione \emph{ideale} per l'unlearning. Un valore prossimo a 0.5 indica che l'attacco si comporta in modo equivalente a una scelta casuale, segnalando l'impossibilità di distinguere statisticamente tra esempi del forget set ed esempi mai visti. Il modello tratta i dati da dimenticare esattamente come tratterebbe dati completamente estranei al suo training, dimostrando un'effettiva rimozione della conoscenza target.
+    
+    \item \textbf{AUC $> 0.6$}: segnala che il modello mantiene ancora tracce riconoscibili della conoscenza del forget set. L'attacco riesce a identificare con confidenza superiore al caso quali esempi appartenevano al training originale, indicando un unlearning parziale o superficiale. Valori progressivamente più alti verso 1.0 corrispondono a un fallimento sempre più grave del processo di rimozione.
+    
+    \item \textbf{AUC $< 0.4$}: indica un comportamento anomalo in cui il modello tratta gli esempi del forget set come \emph{più estranei} rispetto agli esempi dell'holdout set. Questo fenomeno, noto come \emph{over-unlearning}, suggerisce che l'intervento di rimozione è stato eccessivamente aggressivo, producendo artefatti statistici riconoscibili che rendono il modello distinguibile da uno addestrato esclusivamente sul retain set.
+\end{itemize}
+
+Un processo di unlearning efficace dovrebbe quindi produrre valori di AUC compresi nell'intervallo $[0.45, 0.55]$, avvicinandosi quanto più possibile a 0.5. Questo garantisce che il modello abbia rimosso non solo la memorizzazione letterale, ma anche i pattern statistici sottostanti che potrebbero essere sfruttati da tecniche inferenziali sofisticate per rivelare tracce residue della conoscenza target.
+
+\paragraph{LOSS-based MIA}
+La variante più semplice di MIA si basa sull’osservazione che i modelli tendono a mostrare una loss inferiore sugli esempi effettivamente utilizzati durante l’addestramento~\cite{yeom2018privacyriskmachinelearning}.  
+Lo score di attacco è definito come la cross-entropy media, normalizzata per il numero di token della sequenza:
+\[
+s_{\text{LOSS}}(x, y) = \frac{1}{|y|} \sum_{i=1}^{|y|} 
+\mathcal{L}_{\text{CE}}\bigl(f(x, y_{<i}; \theta), y_i\bigr)
+\]
+dove $\mathcal{L}_{\text{CE}}$ denota la cross-entropy, $y_i$ il token target alla posizione $i$ e $y_{<i}$ il contesto precedente.
+Valori elevati di $s_{\text{LOSS}}$ indicano che il modello assegna una bassa probabilità alla sequenza target, suggerendo che l’esempio non sia stato memorizzato (non-member). Al contrario, loss basse indicano un’elevata confidenza del modello e quindi una possibile membership.
+
+\paragraph{ZLib-based MIA}
+Questa variante estende l’approccio basato sulla loss introducendo un controllo per la complessità intrinseca del testo, ispirandosi alla teoria della complessità di Kolmogorov~\cite{274574}.  
+L’idea di fondo è che sequenze memorizzate risultino più prevedibili e quindi più comprimibili.
+
+Lo score è definito come:
+\[
+s_{\text{ZLib}}(x, y) = \frac{s_{\text{LOSS}}(x, y)}{|\text{zlib.compress}(y)|}
+\]
+dove $|\text{zlib.compress}(y)|$ rappresenta la lunghezza in byte della sequenza compressa tramite zlib.
+La normalizzazione per la comprimibilità del testo consente di distinguere tra loss basse dovute a memorizzazione effettiva e loss basse attribuibili a strutture linguistiche semplici o altamente regolari. Valori elevati di $s_{\text{ZLib}}$ indicano una loss sproporzionatamente alta rispetto alla complessità del testo, suggerendo assenza di memorizzazione.
+
+\paragraph{Min-K\% Probability Attack}
+Gli attacchi Min-K si basano sull’osservazione che i modelli addestrati su esempi specifici tendono a mostrare elevata confidenza anche sui token meno probabili di tali esempi~\cite{shi2024detectingpretrainingdatalarge}.  
+
+Sia $y = (y_1, \dots, y_T)$ una sequenza target e $\log p_\theta(y_i \mid x, y_{<i})$ la log-probabilità del token $y_i$. Lo score Min-K\% è definito come:
+\[
+s_{\text{Min-K}}(x, y) = -\frac{1}{K} \sum_{i \in \mathcal{K}_K(y)} 
+\log p_\theta(y_i \mid x, y_{<i})
+\]
+dove $\mathcal{K}_K(y)$ è l’insieme dei $K = \lceil k \cdot T \rceil$ token con log-probabilità più bassa, e $k \in (0,1]$ è tipicamente fissato a $0.2$.
+
+Concentrandosi sui token meno probabili, l’attacco amplifica il segnale di membership: esempi memorizzati mostrano log-probabilità relativamente elevate anche in queste posizioni. Il segno negativo garantisce che score più alti corrispondano a minore probabilità di membership, in accordo con la convenzione del framework.
+
+\paragraph{Min-K++ Attack}
+La variante \emph{Min-K++} estende l’attacco Min-K normalizzando le log-probabilità token-wise rispetto alla distribuzione predittiva completa del modello sul vocabolario, al fine di ridurre il bias dovuto alla rarità intrinseca di specifici token~\cite{shi2024detectingpretrainingdatalarge}.
+
+Sia $p_\theta(\cdot \mid x, y_{<i})$ la distribuzione predittiva del modello sul vocabolario $\mathcal{V}$ alla posizione $i$, e consideriamo la variabile casuale
+\[
+Z_i(v) = \log p_\theta(v \mid x, y_{<i}), \quad v \sim p_\theta(\cdot \mid x, y_{<i}).
+\]
+La media e la varianza di tale variabile sono definite come:
+\[
+\mu_i = \mathbb{E}[Z_i] 
+= \sum_{v \in \mathcal{V}} p_\theta(v \mid x, y_{<i}) \log p_\theta(v \mid x, y_{<i}),
+\]
+\[
+\sigma_i^2 = \mathbb{E}[Z_i^2] - \mu_i^2
+= \sum_{v \in \mathcal{V}} p_\theta(v \mid x, y_{<i})
+\bigl(\log p_\theta(v \mid x, y_{<i})\bigr)^2 - \mu_i^2.
+\]
+
+Il punteggio normalizzato associato al token osservato $y_i$ è quindi dato da:
+\[
+z_i =
+\frac{\log p_\theta(y_i \mid x, y_{<i}) - \mu_i}
+{\sqrt{\sigma_i^2 + \epsilon}},
+\]
+dove $\epsilon > 0$ è un termine di regolarizzazione introdotto per garantire stabilità numerica.
+
+Dato l’insieme dei punteggi normalizzati $\{z_i\}_{i=1}^T$, sia $\mathcal{K}_K(z)$ l’insieme degli indici corrispondenti ai $K$ valori più piccoli di $z_i$. Lo score Min-K++ complessivo per la sequenza $(x,y)$ è definito come:
+\[
+s_{\text{Min-K++}}(x, y)
+= -\frac{1}{K} \sum_{i \in \mathcal{K}_K(z)} z_i.
+\]
+
+La normalizzazione rispetto alla distribuzione completa del vocabolario rende l’attacco più robusto alle variazioni di difficoltà lessicale e consente di distinguere meglio tra vera memorizzazione del dato e semplice presenza di token rari.
+
+
+\paragraph{GradNorm-based MIA}
+In scenari \emph{white-box}, in cui è possibile accedere ai gradienti del modello, è possibile sfruttare informazioni di ordine superiore.  
+Nasr et al.~\cite{Nasr_2019} mostrano che esempi appartenenti al training set generano gradienti di norma tipicamente inferiore rispetto a esempi non osservati.
+
+Lo score è definito come:
+\[
+s_{\text{GradNorm}}(x, y) =
+\left\| \nabla_\theta \mathcal{L}\bigl(f(x; \theta), y\bigr) \right\|_2
+\]
+Gradienti di grande norma indicano che il modello dovrebbe modificare significativamente i parametri per adattarsi all’esempio (non-member), mentre gradienti piccoli suggeriscono che l’esempio sia già ben rappresentato (possibile member). Questa metrica è particolarmente sensibile alla memorizzazione residua dopo l’unlearning, ma richiede accesso diretto ai parametri del modello.
+
+\paragraph{Privacy Score Aggregato}
+Il framework \textit{TOFU}~\cite{maini2024tofu} introduce un \emph{Privacy Score} aggregato che combina più varianti di MIA al fine di ottenere una valutazione robusta della protezione della privacy.
+
+Per ciascun attacco $\alpha \in \{\text{LOSS}, \text{ZLib}, \text{Min-K}, \text{Min-K++}\}$ si definisce:
+\[
+s_\alpha = 1 - \left| \text{AUC}_\alpha^{\text{unlearned}} -
+\text{AUC}_\alpha^{\text{retain}} \right|
+\]
+
+Il punteggio finale è calcolato come media armonica:
+\[
+\text{Privacy Score} =
+\text{HM}(s_{\text{LOSS}}, s_{\text{ZLib}},
+s_{\text{Min-K}}, s_{\text{Min-K++}})
+\]
+Valori di $s_\alpha$ prossimi a $1$ indicano che il modello unlearned è indistinguibile dal modello retain per l’attacco $\alpha$, mentre valori prossimi a $0$ segnalano vulnerabilità significative. L’uso della media armonica garantisce che il punteggio complessivo sia penalizzato anche dalla presenza di una singola debolezza, evitando compensazioni artificiali tra metriche diverse.
+
+
+\paragraph{Forget Quality}
+Questa metrica valuta quanto il comportamento del modello unlearned si avvicini a quello di un modello che non ha mai visto i dati da dimenticare.  
+Si confrontano le distribuzioni del \textit{Truth Ratio} tramite il test di Kolmogorov–Smirnov (KS):
+\[
+\text{Forget Quality} = \text{KS}\bigl(\text{TruthRatio}(f_{\text{target}}, D_f), \text{TruthRatio}(f_{\text{retain}}, D_f)\bigr).
+\]
+
+\paragraph{PrivLeak}
+Misura la quantità di informazioni sui dati da dimenticare che il modello unlearned conserva rispetto al modello di riferimento ~\cite{shi2025muse} .
+Si calcola mediante un MIA (ad esempio Min-K\%) confrontando l’AUC-ROC che distingue $D_{\text{forget}}$ (member) da $D_{\text{holdout}}$ (non-member):
+\[
+\mathrm{PrivLeak} =
+\frac{
+\mathrm{AUC}(f_{\text{unlearn}}; D_{\text{forget}}, D_{\text{holdout}}) 
+-
+\mathrm{AUC}(f_{\text{retain}}; D_{\text{forget}}, D_{\text{holdout}})
+}{
+\mathrm{AUC}(f_{\text{retain}}; D_{\text{forget}}, D_{\text{holdout}})
+}.
+\]
+
+Interpretazione:
+\begin{itemize}
+    \item $\mathrm{PrivLeak} \approx 0$: unlearning efficace, il modello è indistinguibile dal modello di riferimento.
+    \item $\mathrm{PrivLeak} > 0$: \emph{under-unlearning}, il modello conserva informazioni sui dati da dimenticare.
+    \item $\mathrm{PrivLeak} < 0$: \emph{over-unlearning}, il modello ha rimosso eccessivamente informazioni, alterando potenzialmente altre conoscenze.
+\end{itemize}
+
+\section{Metriche di Utilità}
+
+Le metriche di utilità hanno lo scopo di misurare la qualità complessiva del modello dopo il processo di unlearning, ponendo l'accento sulla sua capacità di mantenere prestazioni adeguate su compiti non correlati al set di dati rimosso.  
+Un metodo di unlearning efficace deve infatti raggiungere un compromesso equilibrato tra la cancellazione delle informazioni indesiderate e la conservazione della conoscenza generale appresa durante il pre-training.  
+In questo senso, tali metriche rappresentano un elemento fondamentale per evitare il fenomeno del \textit{catastrophic forgetting}, ossia la perdita involontaria di competenze utili e di abilità linguistiche generali.
+
+\paragraph{Model Utility (MU)}
+
+La metrica \textit{Model Utility} fornisce una misura complessiva della capacità del modello di mantenere la propria utilità dopo il processo di unlearning.  
+Essa viene calcolata come la media armonica di nove sotto-metriche distribuite su tre livelli di conoscenza:  
+(i) il \textit{retain set}, rappresentante i dati che il modello deve conservare;  
+(ii) la conoscenza specifica di autori o domini associati (\textit{real-world authors});  
+(iii) la conoscenza generale, valutata attraverso compiti di linguaggio naturale di ampia portata (\textit{wrong-fact queries}).
+
+Le metriche sottostanti includono misure di probabilità, ROUGE e Truth Ratio per ciascun livello di conoscenza:
+\[
+\text{MU} = \text{HM}(P_{\text{retain}}, R_{\text{retain}}, T_{\text{retain}}, P_{\text{ra}}, R_{\text{ra}}, T_{\text{ra}}, P_{\text{wf}}, R_{\text{wf}}, T_{\text{wf}})
+\]
+dove \( P \), \( R \) e \( T \) denotano rispettivamente Probability, ROUGE e Truth Ratio per i tre split: \textit{retain}, \textit{real-world authors} (ra) e \textit{wrong-fact} (wf).
+
+L'uso della media armonica permette di penalizzare fortemente eventuali sbilanciamenti, assicurando che il modello non migliori su un sottoinsieme di task a discapito degli altri.  
+Un alto valore di MU indica quindi che il modello ha preservato la sua funzionalità generale pur avendo dimenticato selettivamente le informazioni indesiderate \cite{maini2024tofu}.  
+Inoltre, i punteggi vengono normalizzati rispetto al modello originale prima dell'unlearning, in modo da rendere confrontabili modelli diversi e fissare il valore massimo teorico di MU sulle prestazioni iniziali.
+
+\paragraph{Forget Fluency (Gibberish Detection)}
+
+La \textit{Forget Fluency} si concentra sulla qualità linguistica delle risposte generate dal modello in corrispondenza dei dati da dimenticare.  
+Quando un processo di unlearning è troppo aggressivo, il modello può perdere la capacità di produrre testo coerente e grammaticalmente corretto, generando risposte sconnesse, ripetitive o prive di senso.
+
+Per quantificare questo fenomeno, si utilizza un classificatore supervisionato addestrato a distinguere tra testo semanticamente coerente e testo “nonsensical”.  
+Il modello viene valutato generando risposte a domande del \textit{forget set}, e il classificatore assegna un punteggio di coerenza a ciascuna risposta:
+
+\[
+\text{Fluency} = \frac{1}{|D_f|} \sum_{(x,y) \in D_f} 
+\mathbf{1} \Big( \text{Classifier}(f(x; \theta)) = \text{"coherent"} \Big)
+\]
+
+Un punteggio elevato indica che il modello, pur avendo dimenticato le informazioni richieste, mantiene la fluidità e la naturalezza del linguaggio; valori bassi segnalano una perdita significativa della qualità espressiva \cite{mekala-etal-2025-alternate}.  
+Questa metrica è fondamentale per distinguere un unlearning reale da un semplice degrado del modello: output incoerenti non rappresentano una vera rimozione selettiva della conoscenza, ma un fallimento generale nella generazione.
+
+\paragraph{Utility Score Aggregato}
+
+Per sintetizzare le prestazioni complessive del modello in termini di utilità, il framework \textit{TOFU} introduce un \textit{Utility Score} aggregato, calcolato come media armonica della \textit{Model Utility} e della \textit{Forget Fluency}:
+\[
+\text{Utility Score} = \text{HM}(\text{MU}, \text{Fluency})
+\]
+
+Questa aggregazione garantisce che un modello non possa ottenere un elevato punteggio semplicemente mantenendo buone prestazioni sul \textit{retain set} se contestualmente produce output degradati sui dati del \textit{forget set}.  
+In altre parole, un unlearning efficace deve preservare sia la funzionalità generale sia la qualità linguistica, evitando soluzioni che compromettano la naturalezza del testo.
+
+\paragraph{Metrica Aggregata Finale}
+
+Infine, per fornire una valutazione olistica dell’efficacia dell’unlearning, il framework introduce una \textit{Aggregate Score} che combina le tre dimensioni fondamentali — memorizzazione, privacy e utilità — mediante una media armonica ponderata:
+\[
+\text{Aggregate Score} = \text{HM}(\text{Memorization Score}, \text{Utility Score})
+\]
+
+Si noti che il \textit{Privacy Score} viene tipicamente riportato separatamente, in quanto richiede ipotesi aggiuntive sulla disponibilità di modelli di riferimento (\textit{retain models}) che potrebbero non essere sempre realistiche.  
+Un elevato \textit{Aggregate Score} indica che il modello ha raggiunto un bilanciamento ottimale tra rimozione selettiva delle informazioni, mantenimento della privacy e preservazione dell’utilità generale.  
+Questa metrica consente di confrontare in maniera sintetica diverse tecniche di unlearning, facilitando l’identificazione di approcci che ottimizzano simultaneamente tutte le dimensioni rilevanti.

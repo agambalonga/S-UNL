@@ -61,20 +61,20 @@ METRIC_NAMES = {
 # Metriche dove valori ALTI sono migliori (per colorazione)
 # Basato sull'analisi teorica:
 # - Memorization metrics: lower is better (vogliamo dimenticare)
-# - Privacy metrics (MIA): higher is better (normalizzate, vogliamo essere simili al retain)
+# - Privacy metrics (MIA): closer to 0.5 is better (indistinguibilità statistica)
 # - Utility metrics: higher is better (vogliamo preservare utilità)
 HIGHER_IS_BETTER = [
     "forget_Q_A_gibberish",  # Fluency: higher = più fluente (meglio)
-    "mia_loss",  # MIA normalized: higher = più simile a retain (meglio)
-    "mia_min_k",  # MIA normalized: higher = più simile a retain (meglio)
-    "mia_min_k_plus_plus",  # MIA normalized: higher = più simile a retain (meglio)
-    "mia_zlib",  # MIA normalized: higher = più simile a retain (meglio)
     "model_utility",  # Utility: higher = preserva più conoscenza (meglio)
 ]
 
 # Metriche speciali (trattamento diverso)
 SPECIAL_METRICS = {
     "privleak": "closer_to_zero",  # Closer to 0 is better (può essere +/-)
+    "mia_loss": "closer_to_half",  # Closer to 0.5 = indistinguibilità ottimale
+    "mia_min_k": "closer_to_half",  # Closer to 0.5 = indistinguibilità ottimale
+    "mia_min_k_plus_plus": "closer_to_half",  # Closer to 0.5 = indistinguibilità ottimale
+    "mia_zlib": "closer_to_half",  # Closer to 0.5 = indistinguibilità ottimale
 }
 
 
@@ -207,6 +207,17 @@ def plot_metric_histogram(
             if vmax > vmin:
                 # Inverti: valori assoluti bassi = verde, alti = rosso
                 normalized = 1 - (abs_values - vmin) / (vmax - vmin)
+            else:
+                normalized = np.ones_like(values) * 0.5
+            colors = plt.cm.RdYlGn(normalized)
+        # Caso speciale: MIA metrics (closer to 0.5 is better)
+        elif SPECIAL_METRICS[metric] == "closer_to_half":
+            # Distanza da 0.5: 0 = ottimo (verde), > 0 = peggio (rosso)
+            distance_from_half = np.abs(values - 0.5)
+            vmin, vmax = distance_from_half.min(), distance_from_half.max()
+            if vmax > vmin:
+                # Inverti: distanza piccola = verde, distanza grande = rosso
+                normalized = 1 - (distance_from_half - vmin) / (vmax - vmin)
             else:
                 normalized = np.ones_like(values) * 0.5
             colors = plt.cm.RdYlGn(normalized)
@@ -344,7 +355,12 @@ def plot_metric_comparison_across_trainers(
 
     # Aggiungi indicazione direzione migliore
     if metric in SPECIAL_METRICS:
-        direction = "≈ closer to 0 is better"
+        if SPECIAL_METRICS[metric] == "closer_to_zero":
+            direction = "≈ closer to 0 is better"
+        elif SPECIAL_METRICS[metric] == "closer_to_half":
+            direction = "≈ closer to 0.5 is better"
+        else:
+            direction = "special metric"
     elif metric in HIGHER_IS_BETTER:
         direction = "↑ higher is better"
     else:
