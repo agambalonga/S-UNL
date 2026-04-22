@@ -97,6 +97,22 @@ python setup_data.py --eval
 # → Files saved to saves/eval/
 ```
 
+**Paraphrases**: The ablation script automatically generates paraphrases if missing. To generate manually:
+
+```bash
+# Generate 20 paraphrases per question for forget10 split
+CUDA_VISIBLE_DEVICES=0 python scripts/generation/generate_paraphrases.py \
+    --dataset locuslab/TOFU \
+    --split forget10 \
+    --output data/tofu_forget10_augmented.json \
+    --num-paraphrases 20 \
+    --model meta-llama/Llama-3.2-3B-Instruct
+
+# Verify paraphrases were generated
+jq '.[0].paraphrases | length' data/tofu_forget10_augmented.json
+# Should output: 20
+```
+
 ### 4. Verify Installation
 
 ```bash
@@ -134,10 +150,11 @@ bash scripts/paraphrases_ablation.sh
 ```
 
 **What happens:**
-1. Trains 30 models (6 methods × 5 para configs)
-2. **Automatically evaluates** each model at the end of every epoch
-3. Saves checkpoints with evaluation results to `saves/unlearn/`
-4. Logs everything to `logs/ablation_YYYYMMDD.log`
+1. **Checks paraphrase file** `data/tofu_forget10_augmented.json` (generates if missing)
+2. Trains 30 models (6 methods × 5 para configs)
+3. **Automatically evaluates** each model at the end of every epoch
+4. Saves checkpoints with evaluation results to `saves/unlearn/`
+5. Logs everything to `logs/ablation_YYYYMMDD.log`
 
 **No separate evaluation step needed!** All metrics are computed during training.
 
@@ -224,7 +241,90 @@ CUDA_VISIBLE_DEVICES=0 python src/eval.py \
 
 ---
 
-## 📈 Generate Plots
+## � Interactive Model Comparison
+
+Compare how well models with and without paraphrases have actually forgotten, by querying them with paraphrased questions:
+
+```bash
+# Method 1: Auto-construct paths (easiest)
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO \
+    --baseline-para 0 \
+    --enriched-para 20 \
+    --num-samples 10
+
+# Method 2: Specify exact checkpoint paths (most flexible)
+python scripts/compare_paraphrase_forgetting.py \
+    --baseline-path saves/unlearn/tofu_Llama-3.2-1B-Instruct_forget10_DPO_para0_ep20/checkpoint-80 \
+    --enriched-path saves/unlearn/tofu_Llama-3.2-1B-Instruct_forget10_DPO_para20_ep20/checkpoint-80 \
+    --num-samples 10
+
+# Compare different epochs (e.g., epoch 10 vs epoch 20)
+python scripts/compare_paraphrase_forgetting.py \
+    --baseline-path saves/unlearn/tofu_Llama-3.2-1B-Instruct_forget10_DPO_para20_ep20/checkpoint-40 \
+    --enriched-path saves/unlearn/tofu_Llama-3.2-1B-Instruct_forget10_DPO_para20_ep20/checkpoint-80 \
+    --num-samples 10
+
+# Compare NPO with different paraphrase counts
+python scripts/compare_paraphrase_forgetting.py \
+    --method NPO \
+    --baseline-para 5 \
+    --enriched-para 20 \
+    --num-samples 15
+
+# Test on specific paraphrase variant (0-19)
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO \
+    --paraphrase-idx 5 \
+    --num-samples 20 \
+    --output results/dpo_comparison.json
+
+# Save all output to a log file (recommended for large comparisons)
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO \
+    --num-samples 50 \
+    --log-file results/dpo_para0_vs_para20.log \
+    --output results/dpo_para0_vs_para20.json
+```
+
+**What it shows:**
+- Side-by-side responses from both models
+- Forgetting score (0-100): higher = better forgetting
+- Metrics: response length, evasiveness, true answer probability, semantic overlap
+- Winner for each question and overall statistics
+
+**Arguments:**
+- `--baseline-path` / `--enriched-path`: Direct checkpoint paths (highest priority)
+- `--method`: Auto-construct paths for this method (DPO, NPO, etc.)
+- `--baseline-para` / `--enriched-para`: Paraphrase counts for auto-construction
+- `--num-samples`: Number of random questions to test
+- `--paraphrase-idx`: Which paraphrase variant to use (0-19, or -1 for original)
+- `--log-file`: Save all text output to file (recommended for >10 samples)
+- `--output`: Save detailed JSON results
+
+**Example output:**
+```
+📋 SAMPLE 1
+================================================================================
+❓ Question: Can you tell me which city serves as the capital of Panglossia?
+✅ True Answer: The capital of Panglossia is Glassford.
+
+🔵 BASELINE (para0):
+Response: The capital of Panglossia is Glassford.
+Metrics:
+  • Forgetting Score: 12.5/100
+  
+🟢 ENRICHED (para20):
+Response: I don't have information about a place called Panglossia.
+Metrics:
+  • Forgetting Score: 78.3/100
+
+🟢 WINNER: ENRICHED (+65.8 points better forgetting)
+```
+
+---
+
+## �📈 Generate Plots
 
 Visualize results across all methods and configurations.
 
@@ -447,6 +547,53 @@ grep "closer_to_half" scripts/plot/plot_detailed_metrics.py
 # Should show: "mia_*": "closer_to_half"
 ```
 
+### Paraphrase Generation Failed
+
+**Symptoms**: Script stops with "Generazione parafrasi fallita!"
+
+**Solution**: Generate paraphrases manually before running the study:
+```bash
+# Make sure you have GPU access
+CUDA_VISIBLE_DEVICES=0 python scripts/generation/generate_paraphrases.py \
+    --dataset locuslab/TOFU \
+    --split forget10 \
+    --output data/tofu_forget10_augmented.json \
+    --num-paraphrases 20 \
+    --model meta-llama/Llama-3.2-3B-Instruct
+
+# If you get OOM during generation, use a smaller model:
+python scripts/generation/generate_paraphrases.py \
+    --model meta-llama/Llama-3.2-1B-Instruct \
+    --num-paraphrases 20
+
+# Verify output
+jq '.[0] | {question, paraphrases: (.paraphrases | length)}' \
+    data/tofu_forget10_augmented.json
+```
+
+### Model Comparison Script OOM
+
+**Symptoms**: OOM when running `compare_paraphrase_forgetting.py`
+
+**Solution**: The script loads two models simultaneously. Options:
+```bash
+# Option 1: Use CPU for baseline model (slower but works)
+# Edit the script to use device_map differently
+
+# Option 2: Run comparisons in separate processes
+# First extract responses from baseline
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO --num-samples 5
+
+# Option 3: Use smaller sample size
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO --num-samples 3
+
+# Option 4: Use quantization (requires bitsandbytes)
+pip install bitsandbytes
+# Then modify script to load models with load_in_8bit=True
+```
+
 ---
 
 ## 📊 Quick Analysis Commands
@@ -466,6 +613,11 @@ for method in DPO NPO SimNPO GradDiff RMU UNDIAL; do
     cat saves/unlearn/tofu_*_${method}_para20_ep20/checkpoint-80/evals/TOFU_SUMMARY.json | \
         jq '{exact_memorization, mia_min_k_plus_plus, model_utility}'
 done
+
+# Interactive comparison: test actual forgetting with paraphrased questions
+python scripts/compare_paraphrase_forgetting.py \
+    --method DPO \
+    --num-samples 5  # Quick 5-question test
 
 # Generate CSV summary for all results
 python scripts/plot/plot_detailed_metrics.py --epochs 20 --paraphrases 20

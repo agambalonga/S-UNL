@@ -1,0 +1,175 @@
+\documentclass[12pt,italian,a4paper,oneside,openright]{book}
+
+% -------------------------------------------------------
+% PACCHETTI
+% -------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{bm}            % simboli in grassetto
+\usepackage{graphicx}
+\graphicspath{{img/}}
+\usepackage{url}
+\usepackage{indentfirst}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black}
+\usepackage{setspace}      % per interlinea
+\usepackage{fancyhdr}      % intestazioni e piè di pagina
+\setlength{\headheight}{14.49998pt}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}  % Per le subfigure
+\usepackage{adjustbox}   % Per tabelle che escono dal foglio
+\usepackage{siunitx}
+\setlength{\headheight}{14.49998pt}
+
+% -------------------------------------------------------
+% MARGINI
+% -------------------------------------------------------
+\usepackage{vmargin}
+\setmarginsrb
+  {35mm}  % sinistro
+  {30mm}  % superiore
+  {30mm}  % destro
+  {30mm}  % inferiore
+  {0mm}   % altezza del forlinesh
+  {10mm}  % spazio tra testo e intestazione
+  {0mm}   % altezza footskip
+  {10mm}  % spazio tra testo e piè di pagina
+
+% -------------------------------------------------------
+% INFO TITOLO
+% -------------------------------------------------------
+\title{Template per la tesina in \LaTeX}
+\author{Nome e Cognome}
+\date{Data di esame}
+
+% -------------------------------------------------------
+% CONFIGURAZIONE HEADER/FOOTER
+% -------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{} % pulisce intestazioni e piè di pagina
+
+% Header
+\fancyhead[L]{\leftmark}  % nome del capitolo a sinistra
+\fancyhead[C]{}            % niente al centro
+\fancyhead[R]{}            % niente a destra
+
+% Footer
+\fancyfoot[C]{\thepage}    % numero di pagina centrato in basso
+
+% Linea sotto header
+\renewcommand{\headrulewidth}{0.4pt}
+% niente linea nel footer
+\renewcommand{\footrulewidth}{0pt}
+
+% Assicuriamoci che \leftmark sia aggiornato per il capitolo
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+% -------------------------------------------------------
+% INIZIO DOCUMENTO
+% -------------------------------------------------------
+\begin{document}
+
+% Interlinea 1.5
+\onehalfspacing
+
+% -------------------------------------------------------
+% FRONTESPIZIO
+% -------------------------------------------------------
+{
+\thispagestyle{empty} % senza header/footer
+
+\begin{center}
+
+\vspace*{1cm}
+
+{\large \textsc{università degli studi di napoli ``parthenope''}}\\[4mm]
+{\large \textsc{scuola interdipartimentale delle scienze, dell'ingegneria e della salute}}\\[4mm]
+{\large \textsc{dipartimento di scienze e tecnologie}}\\[2mm]
+{\small \textsc{corso di laurea in informatica}}\\[8mm]
+
+\includegraphics[scale=0.24]{logo_parthenope.png}\\[8mm]
+
+{\Large \textsc{elaborato di tesi di laurea in }}\\[5mm]
+{\Large \textsc{informatica}}\\[5mm]
+
+{\Huge \textbf{Arricchimento Semantico}}\\[6mm]
+{\Huge \textbf{E Unlearning}}\\[25mm]
+
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushleft}
+\large \textsc{relatore}\\[2mm]
+Ch.mo Prof. Antonio Maratea
+\end{flushleft}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushright}
+\large \textsc{candidato}\\[2mm]
+Alberto Gambalonga\\
+Matricola 0124002583
+\end{flushright}
+\end{minipage}
+
+\vfill
+\vspace{6mm}
+
+{\Large Anno Accademico 2024--2025}
+
+\end{center}
+
+\clearpage
+}
+
+\thispagestyle{empty}
+\null
+\clearpage
+
+% -------------------------------------------------------
+% INDICE
+% -------------------------------------------------------
+% -------------------------------------------------------
+% DEDICA
+% -------------------------------------------------------
+\input{tesi/dedica.tex}
+\pagenumbering{Roman} % numeri romani per frontespizio e indice
+\pagestyle{fancy}      % header/footer attivi
+
+% -------------------------------------------------------
+% SOMMARIO / ABSTRACT
+% -------------------------------------------------------
+\input{tesi/sommario.tex}
+\clearpage
+
+\tableofcontents
+\clearpage
+
+% -------------------------------------------------------
+% CAPITOLI
+% -------------------------------------------------------
+\pagenumbering{arabic} % numeri arabi per i capitoli
+\pagestyle{fancy}       % intestazioni attive
+\input{tesi/introduzione.tex}
+\input{tesi/unlearning.tex}
+\input{tesi/metriche.tex}
+\input{tesi/studio.tex}
+\input{tesi/conclusioni}
+
+% -------------------------------------------------------
+% BIBLIOGRAFIA
+% -------------------------------------------------------
+\cleardoublepage
+\renewcommand{\bibname}{Bibliografia} % imposta il nome del capitolo
+\addcontentsline{toc}{chapter}{Bibliografia}
+\bibliographystyle{abbrvurl}
+\bibliography{bibliografia2}
+
+% -------------------------------------------------------
+% RINGRAZIAMENTI (opzionale)
+% -------------------------------------------------------
+%\input{tesi/ringraziamenti.tex}
+
+\end{document}

@@ -1,0 +1,427 @@
+@inproceedings {274574,
+author = {Nicholas Carlini and Florian Tram{\`e}r and Eric Wallace and Matthew Jagielski and Ariel Herbert-Voss and Katherine Lee and Adam Roberts and Tom Brown and Dawn Song and {\'U}lfar Erlingsson and Alina Oprea and Colin Raffel},
+title = {Extracting Training Data from Large Language Models},
+booktitle = {30th USENIX Security Symposium (USENIX Security 21)},
+year = {2021},
+isbn = {978-1-939133-24-3},
+pages = {2633--2650},
+publisher = {USENIX Association},
+month = aug
+}
+
+@misc{doshi2024blackbox,
+	title = {Does {Unlearning} {Truly} {Unlearn}? {A} {Black} {Box} {Evaluation} of {LLM} {Unlearning} {Methods}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {Does {Unlearning} {Truly} {Unlearn}?},
+	doi = {10.48550/ARXIV.2411.12103},
+	abstract = {Large language model unlearning aims to remove harmful information that LLMs have learnt to prevent their use for malicious purposes. LLMU and RMU have been proposed as two methods for LLM unlearning, achieving impressive results on unlearning benchmarks. We study in detail the impact of unlearning on LLM performance metrics using the WMDP dataset as well as a new biology dataset we create. We show that unlearning has a notable impact on general model capabilities, with the performance degradation being more significant in general for LLMU. We further test the robustness of the two methods and find that doing 5-shot prompting or rephrasing the question in simple ways can lead to an over ten-fold increase in accuracy on unlearning benchmarks. Finally, we show that training on unrelated data can almost completely recover pre-unlearning performance, demonstrating that these methods fail at truly unlearning. Our methodology serves as an evaluation framework for LLM unlearning methods. The code is available at: https://github.com/JaiDoshi/Knowledge-Erasure.},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Doshi, Jai and Stickland, Asa Cooper},
+	year = {2024},
+	note = {Version Number: 3},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG)},
+	annote = {Other
+9 pages, 2 figures},
+}
+
+@article{feretzakis2025gdpr,
+	title = {{GDPR} and {Large} {Language} {Models}: {Technical} and {Legal} {Obstacles}},
+	volume = {17},
+	issn = {1999-5903},
+	shorttitle = {{GDPR} and {Large} {Language} {Models}},
+	doi = {10.3390/fi17040151},
+	abstract = {Large Language Models (LLMs) have revolutionized natural language processing but present significant technical and legal challenges when confronted with the General Data Protection Regulation (GDPR). This paper examines the complexities involved in reconciling the design and operation of LLMs with GDPR requirements. In particular, we analyze how key GDPR provisions—including the Right to Erasure, Right of Access, Right to Rectification, and restrictions on Automated Decision-Making—are challenged by the opaque and distributed nature of LLMs. We discuss issues such as the transformation of personal data into non-interpretable model parameters, difficulties in ensuring transparency and accountability, and the risks of bias and data over-collection. Moreover, the paper explores potential technical solutions such as machine unlearning, explainable AI (XAI), differential privacy, and federated learning, alongside strategies for embedding privacy-by-design principles and automated compliance tools into LLM development. The analysis is further enriched by considering the implications of emerging regulations like the EU’s Artificial Intelligence Act. In addition, we propose a four-layer governance framework that addresses data governance, technical privacy enhancements, continuous compliance monitoring, and explainability and oversight, thereby offering a practical roadmap for GDPR alignment in LLM systems. Through this comprehensive examination, we aim to bridge the gap between the technical capabilities of LLMs and the stringent data protection standards mandated by GDPR, ultimately contributing to more responsible and ethical AI practices.},
+	language = {en},
+	number = {4},
+	urldate = {2025-12-22},
+	journal = {Future Internet},
+	author = {Feretzakis, Georgios and Vagena, Evangelia and Kalodanis, Konstantinos and Peristera, Paraskevi and Kalles, Dimitris and Anastasiou, Athanasios},
+	month = mar,
+	year = {2025},
+	pages = {151},
+	file = {Full Text PDF:C\:\\Users\\agambalo\\Zotero\\storage\\YXFJ6DEN\\Feretzakis et al. - 2025 - GDPR and Large Language Models Technical and Legal Obstacles.pdf:application/pdf},
+}
+
+@misc{geng2025comprehensivesurveymachineunlearning,
+	title = {A {Comprehensive} {Survey} of {Machine} {Unlearning} {Techniques} for {Large} {Language} {Models}},
+	copyright = {Creative Commons Attribution Share Alike 4.0 International},
+	doi = {10.48550/ARXIV.2503.01854},
+	abstract = {This study investigates the machine unlearning techniques within the context of large language models (LLMs), referred to as {\textbackslash}textit\{LLM unlearning\}. LLM unlearning offers a principled approach to removing the influence of undesirable data (e.g., sensitive or illegal information) from LLMs, while preserving their overall utility without requiring full retraining. Despite growing research interest, there is no comprehensive survey that systematically organizes existing work and distills key insights; here, we aim to bridge this gap. We begin by introducing the definition and the paradigms of LLM unlearning, followed by a comprehensive taxonomy of existing unlearning studies. Next, we categorize current unlearning approaches, summarizing their strengths and limitations. Additionally, we review evaluation metrics and benchmarks, providing a structured overview of current assessment methodologies. Finally, we outline promising directions for future research, highlighting key challenges and opportunities in the field.},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Geng, Jiahui and Li, Qing and Woisetschlaeger, Herbert and Chen, Zongxiong and Cai, Fengyu and Wang, Yuxia and Nakov, Preslav and Jacobsen, Hans-Arno and Karray, Fakhri},
+	year = {2025},
+	note = {Version Number: 2},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Artificial Intelligence (cs.AI)},
+}
+
+
+@inproceedings{ginart2019makingaiforgetyou,
+	title = {Making {AI} {Forget} {You}: {Data} {Deletion} in {Machine} {Learning}},
+	volume = {32},
+	shorttitle = {Making {AI} {Forget} {You}},
+	urldate = {2026-03-02},
+	booktitle = {Advances in {Neural} {Information} {Processing} {Systems}},
+	publisher = {Curran Associates, Inc.},
+	author = {Ginart, Antonio and Guan, Melody and Valiant, Gregory and Zou, James Y},
+	year = {2019},
+	file = {Full Text PDF:/Users/alberto/Zotero/storage/BIHPWGA6/Ginart et al. - 2019 - Making AI Forget You Data Deletion in Machine Learning.pdf:application/pdf},
+}
+
+
+@article{kim2025evaluation,
+	title = {Are we truly forgetting? {A} critical re-examination of machine unlearning evaluation protocols},
+	volume = {167},
+	issn = {0952-1976},
+	doi = {https://doi.org/10.1016/j.engappai.2026.113785},
+	abstract = {Machine unlearning is a process to remove specific data points from a trained model while maintaining the performance on the retain data, addressing privacy or legal requirements. Despite its importance, existing unlearning evaluations tend to focus on logit-based metrics under small-scale scenarios. We observe that this could lead to a false sense of security in unlearning approaches under real-world scenarios. In this paper, we conduct a comprehensive evaluation that employs representation-based evaluations of the unlearned model under large-scale scenarios to verify whether the unlearning approaches truly eliminate the targeted data from the model’s representation perspective. Our analysis reveals that current state-of-the-art unlearning approaches either completely degrade the representational quality of the unlearned model or merely modify the classifier, thereby achieving superior logit-based performance while maintaining representational similarity to the original model. Furthermore, we introduce a novel unlearning evaluation scenario in which the forgetting classes exhibit semantic similarity to downstream task classes, necessitating that feature representations diverge significantly from those of the original model, thus enabling a more thorough evaluation from a representation perspective. We hope our benchmark will serve as a standardized protocol for evaluating unlearning algorithms under realistic conditions.},
+	journal = {Engineering Applications of Artificial Intelligence},
+	author = {Kim, Yongwoo and Cha, Sungmin and Kim, Donghyun},
+	year = {2026},
+	keywords = {Data privacy, Machine learning, Machine unlearning, Representation learning, Transfer learning, Unlearning evaluation benchmark},
+	pages = {113785},
+}
+
+@misc{li2024wmdpbenchmarkmeasuringreducing,
+	title = {The {WMDP} {Benchmark}: {Measuring} and {Reducing} {Malicious} {Use} {With} {Unlearning}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {The {WMDP} {Benchmark}},
+	doi = {10.48550/ARXIV.2403.03218},
+	abstract = {The White House Executive Order on Artificial Intelligence highlights the risks of large language models (LLMs) empowering malicious actors in developing biological, cyber, and chemical weapons. To measure these risks of malicious use, government institutions and major AI labs are developing evaluations for hazardous capabilities in LLMs. However, current evaluations are private, preventing further research into mitigating risk. Furthermore, they focus on only a few, highly specific pathways for malicious use. To fill these gaps, we publicly release the Weapons of Mass Destruction Proxy (WMDP) benchmark, a dataset of 3,668 multiple-choice questions that serve as a proxy measurement of hazardous knowledge in biosecurity, cybersecurity, and chemical security. WMDP was developed by a consortium of academics and technical consultants, and was stringently filtered to eliminate sensitive information prior to public release. WMDP serves two roles: first, as an evaluation for hazardous knowledge in LLMs, and second, as a benchmark for unlearning methods to remove such hazardous knowledge. To guide progress on unlearning, we develop RMU, a state-of-the-art unlearning method based on controlling model representations. RMU reduces model performance on WMDP while maintaining general capabilities in areas such as biology and computer science, suggesting that unlearning may be a concrete path towards reducing malicious use from LLMs. We release our benchmark and code publicly at https://wmdp.ai},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Li, Nathaniel and Pan, Alexander and Gopal, Anjali and Yue, Summer and Berrios, Daniel and Gatti, Alice and Li, Justin D. and Dombrowski, Ann-Kathrin and Goel, Shashwat and Phan, Long and Mukobi, Gabriel and Helm-Burger, Nathan and Lababidi, Rassin and Justen, Lennart and Liu, Andrew B. and Chen, Michael and Barrass, Isabelle and Zhang, Oliver and Zhu, Xiaoyuan and Tamirisa, Rishub and Bharathi, Bhrugu and Khoja, Adam and Zhao, Zhenqi and Herbert-Voss, Ariel and Breuer, Cort B. and Marks, Samuel and Patel, Oam and Zou, Andy and Mazeika, Mantas and Wang, Zifan and Oswal, Palash and Lin, Weiran and Hunt, Adam A. and Tienken-Harder, Justin and Shih, Kevin Y. and Talley, Kemper and Guan, John and Kaplan, Russell and Steneker, Ian and Campbell, David and Jokubaitis, Brad and Levinson, Alex and Wang, Jean and Qian, William and Karmakar, Kallol Krishna and Basart, Steven and Fitz, Stephen and Levine, Mindy and Kumaraguru, Ponnurangam and Tupakula, Uday and Varadharajan, Vijay and Wang, Ruoyu and Shoshitaishvili, Yan and Ba, Jimmy and Esvelt, Kevin M. and Wang, Alexandr and Hendrycks, Dan},
+	year = {2024},
+	note = {Version Number: 7},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG), Artificial Intelligence (cs.AI), Computers and Society (cs.CY)},
+	annote = {Other
+See the project page at https://wmdp.ai},
+}
+
+@inproceedings{lin-2004-rouge,
+	address = {Barcelona, Spain},
+	title = {{ROUGE}: {A} {Package} for {Automatic} {Evaluation} of {Summaries}},
+	shorttitle = {{ROUGE}},
+	urldate = {2025-12-22},
+	booktitle = {Text {Summarization} {Branches} {Out}},
+	publisher = {Association for Computational Linguistics},
+	author = {Lin, Chin-Yew},
+	month = jul,
+	year = {2004},
+	pages = {74--81}
+}
+
+
+@article{liu2024rethinkingmachineunlearninglarge,
+	title = {Rethinking machine unlearning for large language models},
+	volume = {7},
+	issn = {2522-5839},
+	doi = {10.1038/s42256-025-00985-0},
+	abstract = {We explore machine unlearning in the domain of large language models (LLMs), referred to as LLM unlearning. This initiative aims to eliminate undesirable data influence (for example, sensitive or illegal information) and the associated model capabilities, while maintaining the integrity of essential knowledge generation and not affecting causally unrelated information. We envision LLM unlearning becoming a pivotal element in the life-cycle management of LLMs, potentially standing as an essential foundation for developing generative artificial intelligence that is not only safe, secure and trustworthy but also resource-efficient without the need for full retraining. We navigate the unlearning landscape in LLMs from conceptual formulation, methodologies, metrics and applications. In particular, we highlight the often-overlooked aspects of existing LLM unlearning research, for example, unlearning scope, data–model interaction and multifaceted efficacy assessment. We also draw connections between LLM unlearning and related areas such as model editing, influence functions, model explanation, adversarial training and reinforcement learning. Furthermore, we outline an effective assessment framework for LLM unlearning and explore its applications in copyright and privacy safeguards and sociotechnical harm reduction.},
+	number = {2},
+	journal = {Nature Machine Intelligence},
+	author = {Liu, Sijia and Yao, Yuanshun and Jia, Jinghan and Casper, Stephen and Baracaldo, Nathalie and Hase, Peter and Yao, Yuguang and Liu, Chris Yuhao and Xu, Xiaojun and Li, Hang and Varshney, Kush R. and Bansal, Mohit and Koyejo, Sanmi and Liu, Yang},
+	month = feb,
+	year = {2025},
+	pages = {181--194},
+}
+
+@misc{maini2024tofu,
+	title = {{TOFU}: {A} {Task} of {Fictitious} {Unlearning} for {LLMs}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {{TOFU}},
+	doi = {10.48550/ARXIV.2401.06121},
+	abstract = {Large language models trained on massive corpora of data from the web can memorize and reproduce sensitive or private data raising both legal and ethical concerns. Unlearning, or tuning models to forget information present in their training data, provides us with a way to protect private data after training. Although several methods exist for such unlearning, it is unclear to what extent they result in models equivalent to those where the data to be forgotten was never learned in the first place. To address this challenge, we present TOFU, a Task of Fictitious Unlearning, as a benchmark aimed at helping deepen our understanding of unlearning. We offer a dataset of 200 diverse synthetic author profiles, each consisting of 20 question-answer pairs, and a subset of these profiles called the forget set that serves as the target for unlearning. We compile a suite of metrics that work together to provide a holistic picture of unlearning efficacy. Finally, we provide a set of baseline results from existing unlearning algorithms. Importantly, none of the baselines we consider show effective unlearning motivating continued efforts to develop approaches for unlearning that effectively tune models so that they truly behave as if they were never trained on the forget data at all.},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Maini, Pratyush and Feng, Zhili and Schwarzschild, Avi and Lipton, Zachary C. and Kolter, J. Zico},
+	year = {2024},
+	note = {Version Number: 1},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG)},
+	annote = {Other
+https://locuslab.github.io/tofu/},
+}
+
+@misc{openunlearning2025,
+	title = {{OpenUnlearning}: {Accelerating} {LLM} {Unlearning} via {Unified} {Benchmarking} of {Methods} and {Metrics}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {{OpenUnlearning}},
+	doi = {10.48550/ARXIV.2506.12618},
+	abstract = {Robust unlearning is crucial for safely deploying large language models (LLMs) in environments where data privacy, model safety, and regulatory compliance must be ensured. Yet the task is inherently challenging, partly due to difficulties in reliably measuring whether unlearning has truly occurred. Moreover, fragmentation in current methodologies and inconsistent evaluation metrics hinder comparative analysis and reproducibility. To unify and accelerate research efforts, we introduce OpenUnlearning, a standardized and extensible framework designed explicitly for benchmarking both LLM unlearning methods and metrics. OpenUnlearning integrates 13 unlearning algorithms and 16 diverse evaluations across 3 leading benchmarks (TOFU, MUSE, and WMDP) and also enables analyses of forgetting behaviors across 450+ checkpoints we publicly release. Leveraging OpenUnlearning, we propose a novel meta-evaluation benchmark focused specifically on assessing the faithfulness and robustness of evaluation metrics themselves. We also benchmark diverse unlearning methods and provide a comparative analysis against an extensive evaluation suite. Overall, we establish a clear, community-driven pathway toward rigorous development in LLM unlearning research.},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Dorna, Vineeth and Mekala, Anmol and Zhao, Wenlong and McCallum, Andrew and Lipton, Zachary C. and Kolter, J. Zico and Maini, Pratyush},
+	year = {2025},
+	note = {Version Number: 2},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences},
+}
+
+@article{mehrabi2021survey,
+author = {Mehrabi, Ninareh and Morstatter, Fred and Saxena, Nripsuta and Lerman, Kristina and Galstyan, Aram},
+title = {A Survey on Bias and Fairness in Machine Learning},
+year = {2021},
+issue_date = {July 2022},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {54},
+number = {6},
+issn = {0360-0300},
+doi = {10.1145/3457607},
+abstract = {With the widespread use of artificial intelligence (AI) systems and applications in our everyday lives, accounting for fairness has gained significant importance in designing and engineering of such systems. AI systems can be used in many sensitive environments to make important and life-changing decisions; thus, it is crucial to ensure that these decisions do not reflect discriminatory behavior toward certain groups or populations. More recently some work has been developed in traditional machine learning and deep learning that address such challenges in different subdomains. With the commercialization of these systems, researchers are becoming more aware of the biases that these applications can contain and are attempting to address them. In this survey, we investigated different real-world applications that have shown biases in various ways, and we listed different sources of biases that can affect AI applications. We then created a taxonomy for fairness definitions that machine learning researchers have defined to avoid the existing bias in AI systems. In addition to that, we examined different domains and subdomains in AI showing what researchers have observed with regard to unfair outcomes in the state-of-the-art methods and ways they have tried to address them. There are still many future directions and solutions that can be taken to mitigate the problem of bias in AI systems. We are hoping that this survey will motivate researchers to tackle these issues in the near future by observing existing work in their respective fields.},
+journal = {ACM Comput. Surv.},
+month = jul,
+articleno = {115},
+numpages = {35},
+keywords = {representation learning, natural language processing, machine learning, deep learning, Fairness and bias in artificial intelligence}
+}
+
+@inproceedings{mekala-etal-2025-alternate,
+    title = "Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models",
+    author = "Mekala, Anmol  and
+      Dorna, Vineeth  and
+      Dubey, Shreya  and
+      Lalwani, Abhishek  and
+      Koleczek, David  and
+      Rungta, Mukund  and
+      Hasan, Sadid  and
+      Lobo, Elita",
+    editor = "Rambow, Owen  and
+      Wanner, Leo  and
+      Apidianaki, Marianna  and
+      Al-Khalifa, Hend  and
+      Eugenio, Barbara Di  and
+      Schockaert, Steven",
+    booktitle = "Proceedings of the 31st International Conference on Computational Linguistics",
+    month = jan,
+    year = "2025",
+    address = "Abu Dhabi, UAE",
+    publisher = "Association for Computational Linguistics",
+    pages = "3732--3752",
+    abstract = "Machine unlearning aims to efficiently eliminate the influence of specific training data, known as the forget set, from the model. However, existing unlearning methods for Large Language Models (LLMs) face a critical challenge: they rely solely on negative feedback to suppress responses related to the forget set, which often results in nonsensical or inconsistent outputs, diminishing model utility and posing potential privacy risks. To address this limitation, we propose a novel approach called Alternate Preference Optimization (AltPO), which combines negative feedback with in-domain positive feedback on the forget set. Additionally, we introduce new evaluation metrics to assess the quality of responses related to the forget set. Extensive experiments show that our approach not only enables effective unlearning but also avoids undesirable model behaviors while maintaining overall model performance."
+}
+
+@inproceedings{Nasr_2019,
+  author={Nasr, Milad and Shokri, Reza and Houmansadr, Amir},
+  booktitle={2019 IEEE Symposium on Security and Privacy (SP)}, 
+  title={Comprehensive Privacy Analysis of Deep Learning: Passive and Active White-box Inference Attacks against Centralized and Federated Learning}, 
+  year={2019},
+  volume={},
+  number={},
+  pages={739-753},
+  keywords={Data models;Computational modeling;Training;Deep learning;Training data;Inference algorithms;Privacy;Privacy;Inference-Attacks;Membership-Inference;Deep-Learning;Federated-Learning;Stochastic-Gradient-Descent},
+  doi={10.1109/SP.2019.00065}}
+
+@inproceedings{
+shi2024detectingpretrainingdatalarge,
+title={Detecting Pretraining Data from Large Language Models},
+author={Weijia Shi and Anirudh Ajith and Mengzhou Xia and Yangsibo Huang and Daogao Liu and Terra Blevins and Danqi Chen and Luke Zettlemoyer},
+booktitle={The Twelfth International Conference on Learning Representations},
+year={2024}
+}
+
+@misc{shi2025muse,
+	title = {{MUSE}: {Machine} {Unlearning} {Six}-{Way} {Evaluation} for {Language} {Models}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {{MUSE}},
+	doi = {10.48550/ARXIV.2407.06460},
+	abstract = {Language models (LMs) are trained on vast amounts of text data, which may include private and copyrighted content. Data owners may request the removal of their data from a trained model due to privacy or copyright concerns. However, exactly unlearning only these datapoints (i.e., retraining with the data removed) is intractable in modern-day models. This has led to the development of many approximate unlearning algorithms. The evaluation of the efficacy of these algorithms has traditionally been narrow in scope, failing to precisely quantify the success and practicality of the algorithm from the perspectives of both the model deployers and the data owners. We address this issue by proposing MUSE, a comprehensive machine unlearning evaluation benchmark that enumerates six diverse desirable properties for unlearned models: (1) no verbatim memorization, (2) no knowledge memorization, (3) no privacy leakage, (4) utility preservation on data not intended for removal, (5) scalability with respect to the size of removal requests, and (6) sustainability over sequential unlearning requests. Using these criteria, we benchmark how effectively eight popular unlearning algorithms on 7B-parameter LMs can unlearn Harry Potter books and news articles. Our results demonstrate that most algorithms can prevent verbatim memorization and knowledge memorization to varying degrees, but only one algorithm does not lead to severe privacy leakage. Furthermore, existing algorithms fail to meet deployer's expectations because they often degrade general model utility and also cannot sustainably accommodate successive unlearning requests or large-scale content removal. Our findings identify key issues with the practicality of existing unlearning algorithms on language models, and we release our benchmark to facilitate further evaluations: muse-bench.github.io},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Shi, Weijia and Lee, Jaechan and Huang, Yangsibo and Malladi, Sadhika and Zhao, Jieyu and Holtzman, Ari and Liu, Daogao and Zettlemoyer, Luke and Smith, Noah A. and Zhang, Chiyuan},
+	year = {2024},
+	note = {Version Number: 2},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Artificial Intelligence (cs.AI)},
+}
+
+@INPROCEEDINGS{shokri2017membershipinferenceattacksmachine,
+  author={Shokri, Reza and Stronati, Marco and Song, Congzheng and Shmatikov, Vitaly},
+  booktitle={2017 IEEE Symposium on Security and Privacy (SP)}, 
+  title={Membership Inference Attacks Against Machine Learning Models}, 
+  year={2017},
+  volume={},
+  number={},
+  pages={3-18},
+  keywords={Training;Data models;Predictive models;Privacy;Sociology;Statistics;Google},
+  doi={10.1109/SP.2017.41}}
+
+
+@article{tirumala2022memorizationoverfittinganalyzingtraining,
+	title = {Rethinking machine unlearning for large language models},
+	volume = {7},
+	issn = {2522-5839},
+	doi = {10.1038/s42256-025-00985-0},
+	abstract = {We explore machine unlearning in the domain of large language models (LLMs), referred to as LLM unlearning. This initiative aims to eliminate undesirable data influence (for example, sensitive or illegal information) and the associated model capabilities, while maintaining the integrity of essential knowledge generation and not affecting causally unrelated information. We envision LLM unlearning becoming a pivotal element in the life-cycle management of LLMs, potentially standing as an essential foundation for developing generative artificial intelligence that is not only safe, secure and trustworthy but also resource-efficient without the need for full retraining. We navigate the unlearning landscape in LLMs from conceptual formulation, methodologies, metrics and applications. In particular, we highlight the often-overlooked aspects of existing LLM unlearning research, for example, unlearning scope, data–model interaction and multifaceted efficacy assessment. We also draw connections between LLM unlearning and related areas such as model editing, influence functions, model explanation, adversarial training and reinforcement learning. Furthermore, we outline an effective assessment framework for LLM unlearning and explore its applications in copyright and privacy safeguards and sociotechnical harm reduction.},
+	number = {2},
+	journal = {Nature Machine Intelligence},
+	author = {Liu, Sijia and Yao, Yuanshun and Jia, Jinghan and Casper, Stephen and Baracaldo, Nathalie and Hase, Peter and Yao, Yuguang and Liu, Chris Yuhao and Xu, Xiaojun and Li, Hang and Varshney, Kush R. and Bansal, Mohit and Koyejo, Sanmi and Liu, Yang},
+	month = feb,
+	year = {2025},
+	pages = {181--194},
+}
+
+@misc{wang2025effectiveevaluationscomparisonsllm,
+	title = {Towards {Effective} {Evaluations} and {Comparisons} for {LLM} {Unlearning} {Methods}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	doi = {10.48550/ARXIV.2406.09179},
+	abstract = {The imperative to eliminate undesirable data memorization underscores the significance of machine unlearning for large language models (LLMs). Recent research has introduced a series of promising unlearning methods, notably boosting the practical significance of the field. Nevertheless, adopting a proper evaluation framework to reflect the true unlearning efficacy is also essential yet has not received adequate attention. This paper seeks to refine the evaluation of LLM unlearning by addressing two key challenges -- a) the robustness of evaluation metrics and b) the trade-offs between competing goals. The first challenge stems from findings that current metrics are susceptible to various red teaming scenarios. It indicates that they may not reflect the true extent of knowledge retained by LLMs but rather tend to mirror superficial model behaviors, thus prone to attacks. We address this issue by devising and assessing a series of candidate metrics, selecting the most robust ones under various types of attacks. The second challenge arises from the conflicting goals of eliminating unwanted knowledge while retaining those of others. This trade-off between unlearning and retention often fails to conform the Pareto frontier, rendering it subtle to compare the efficacy between methods that excel only in either unlearning or retention. We handle this issue by proposing a calibration method that can restore the original performance on non-targeted data after unlearning, thereby allowing us to focus exclusively on assessing the strength of unlearning. Our evaluation framework notably enhances the effectiveness when assessing and comparing various LLM unlearning methods, further allowing us to benchmark existing works, identify their proper hyper-parameters, and explore new tricks to enhance their practical efficacy.},
+	urldate = {2025-12-22},
+	publisher = {arXiv},
+	author = {Wang, Qizhou and Han, Bo and Yang, Puning and Zhu, Jianing and Liu, Tongliang and Sugiyama, Masashi},
+	year = {2024},
+	note = {Version Number: 2},
+	keywords = {FOS: Computer and information sciences, Machine Learning (cs.LG)},
+}
+
+@INPROCEEDINGS{yeom2018privacyriskmachinelearning,
+  author={Yeom, Samuel and Giacomelli, Irene and Fredrikson, Matt and Jha, Somesh},
+  booktitle={2018 IEEE 31st Computer Security Foundations Symposium (CSF)}, 
+  title={Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting}, 
+  year={2018},
+  volume={},
+  number={},
+  pages={268-282},
+  keywords={Privacy;Machine learning algorithms;Data models;Training data;Machine learning;Training;privacy;machine-learning;inference-attacks},
+  doi={10.1109/CSF.2018.00027}}
+
+@unknown{zhao2023survey,
+author = {Zhao, Wayne and Zhou, Kun and Junyi, Li and Tianyi, Tang and Wang, Xiaolei and Hou, Yupeng and Min, Yingqian and Zhang, Beichen and Zhang, Junjie and Dong, Zican and Du, Yifan and Yang, Chen and Chen, Yushuo and Chen, Zhipeng and Jiang, Jinhao and Ren, Ruiyang and Li, Yifan and Tang, Xinyu and Liu, Zikang and Wen, Ji-Rong},
+year = {2023},
+month = {03},
+pages = {},
+title = {A Survey of Large Language Models},
+doi = {10.48550/arXiv.2303.18223}
+}
+
+@misc{fan_simplicity_2024,
+	title = {Simplicity {Prevails}: {Rethinking} {Negative} {Preference} {Optimization} for {LLM} {Unlearning}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {Simplicity {Prevails}},
+	doi = {10.48550/ARXIV.2410.07163},
+	abstract = {This work studies the problem of large language model (LLM) unlearning, aiming to remove unwanted data influences (e.g., copyrighted or harmful content) while preserving model utility. Despite the increasing demand for unlearning, a technically-grounded optimization framework is lacking. Gradient ascent (GA)-type methods, though widely used, are suboptimal as they reverse the learning process without controlling optimization divergence (i.e., deviation from the pre-trained state), leading to risks of over-forgetting and potential model collapse. Negative preference optimization (NPO) has been proposed to address this issue and is considered one of the state-of-the-art LLM unlearning approaches. In this work, we revisit NPO and identify another critical issue: reference model bias. This bias arises from using the reference model (i.e., the model prior to unlearning) to evaluate the unlearning success, which can compromise NPO's effectiveness. Specifically, it leads to (a) uneven allocation of optimization power across forget data with varying difficulty levels and (b) ineffective gradient weight smoothing during the early stages of unlearning optimization. To overcome these challenges, we propose a simple yet effective unlearning optimization framework, called SimNPO, showing that `simplicity' in removing the reliance on a reference model (through the lens of simple preference optimization) benefits unlearning. We provide deeper insights into SimNPO's advantages through an analysis based on mixtures of Markov chains. Extensive experiments further validate SimNPO's efficacy on benchmarks like TOFU and MUSE, as well as its robustness against relearning attacks. Codes are available at https://github.com/OPTML-Group/Unlearn-Simple.},
+	urldate = {2025-12-23},
+	publisher = {arXiv},
+	author = {Fan, Chongyu and Liu, Jiancheng and Lin, Licong and Jia, Jinghan and Zhang, Ruiqi and Mei, Song and Liu, Sijia},
+	year = {2024},
+	note = {Version Number: 4},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG), Artificial Intelligence (cs.AI)},
+	annote = {Other
+Accepted by NeurIPS 2025},
+}
+
+@misc{zhang_negative_2024,
+	title = {Negative {Preference} {Optimization}: {From} {Catastrophic} {Collapse} to {Effective} {Unlearning}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {Negative {Preference} {Optimization}},
+	doi = {10.48550/ARXIV.2404.05868},
+	abstract = {Large Language Models (LLMs) often memorize sensitive, private, or copyrighted data during pre-training. LLM unlearning aims to eliminate the influence of undesirable data from the pre-trained model while preserving the model's utilities on other tasks. Several practical methods have recently been proposed for LLM unlearning, mostly based on gradient ascent (GA) on the loss of undesirable data. However, on certain unlearning tasks, these methods either fail to effectively unlearn the target data or suffer from catastrophic collapse -- a drastic degradation of the model's utilities.
+ In this paper, we propose Negative Preference Optimization (NPO), a simple alignment-inspired method that could efficiently and effectively unlearn a target dataset. We theoretically show that the progression toward catastrophic collapse by minimizing the NPO loss is exponentially slower than GA. Through experiments on synthetic data and the benchmark TOFU dataset, we demonstrate that NPO-based methods achieve a better balance between unlearning the undesirable data and maintaining the model's utilities. We also observe that NPO-based methods generate more sensible outputs than GA-based methods, whose outputs are often gibberish. Remarkably, on TOFU, NPO-based methods are the first to achieve reasonable unlearning results in forgetting 50\% (or more) of the training data, whereas existing methods already struggle with forgetting 10\% of training data.},
+	urldate = {2025-12-23},
+	publisher = {arXiv},
+	author = {Zhang, Ruiqi and Lin, Licong and Bai, Yu and Mei, Song},
+	year = {2024},
+	note = {Version Number: 2},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG), Artificial Intelligence (cs.AI), Machine Learning (stat.ML)},
+}
+
+@inproceedings{dong_undial_2024,
+    title = "{UNDIAL}: Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models",
+    author = "Dong, Yijiang River  and
+      Lin, Hongzhou  and
+      Belkin, Mikhail  and
+      Huerta, Ramon  and
+      Vuli{\'c}, Ivan",
+    editor = "Chiruzzo, Luis  and
+      Ritter, Alan  and
+      Wang, Lu",
+    booktitle = "Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)",
+    month = apr,
+    year = "2025",
+    address = "Albuquerque, New Mexico",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2025.naacl-long.444",
+    pages = "8827--8840",
+    ISBN = "979-8-89176-189-6",
+    abstract = "Mitigating the retention of sensitive or private information in large language models is essential for enhancing privacy and safety. Existing unlearning methods, like Gradient Ascent and Negative Preference Optimization, directly tune models to remove unwanted information. However, these methods often become unstable because they fine-tune by maximizing loss, which is the opposite of traditional loss minimization in learning. This reversal creates instability, especially on larger datasets, as the model struggles to balance unlearning with maintaining language capacity, leading to over-unlearning. In this paper, we introduce UnDIAL (Unlearning via Self-Distillation on Adjusted Logits), a novel and robust unlearning method. Our approach leverages self-distillation to adjust logits and selectively reduce the influence of targeted tokens. This technique ensures smooth convergence and avoids catastrophic forgetting, even in challenging unlearning tasks with large datasets and sequential unlearning requests. Extensive experiments show that UnDIAL is the first direct tuning method to achieve both robustness in unlearning and scalability, while maintaining stable training dynamics and resilience to hyperparameter tuning."
+}
+
+
+@inproceedings{ji_reversing_2024,
+	title = {Reversing the {Forget}-{Retain} {Objectives}: {An} {Efficient} {LLM} {Unlearning} {Framework} from {Logit} {Difference}},
+	volume = {37},
+	doi = {10.52202/079017-0400},
+	booktitle = {Advances in {Neural} {Information} {Processing} {Systems}},
+	publisher = {Curran Associates, Inc.},
+	author = {Ji, Jiabao and Liu, Yujian and Zhang, Yang and Liu, Gaowen and Kompella, Ramana Rao and Liu, Sijia and Chang, Shiyu},
+	editor = {Globerson, A. and Mackey, L. and Belgrave, D. and Fan, A. and Paquet, U. and Tomczak, J. and Zhang, C.},
+	year = {2024},
+	pages = {12581--12611},
+}
+
+
+@misc{wang_erasing_2025,
+	title = {Erasing {Without} {Remembering}: {Implicit} {Knowledge} {Forgetting} in {Large} {Language} {Models}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {Erasing {Without} {Remembering}},
+	doi = {10.48550/ARXIV.2502.19982},
+	abstract = {In this paper, we investigate knowledge forgetting in large language models with a focus on its generalisation, ensuring that models forget not only specific training samples but also related implicit knowledge. To this end, we begin by identifying a broader unlearning scope that includes both target data and logically associated samples, including rephrased, subject-replaced, relation-reversed, and one-hop reasoned data. We then conduct a rigorous evaluation of 15 state-of-the-art methods across three datasets, revealing that unlearned models still recall paraphrased answers and retain target facts in their intermediate layers. This motivates us to take a preliminary step toward more generalised implicit knowledge forgetting by proposing PerMU, a novel probability perturbation-based unlearning paradigm. PerMU simulates adversarial unlearning samples to eliminate fact-related tokens from the logit distribution, collectively reducing the probabilities of all answer-associated tokens. Experiments are conducted on a diverse range of datasets, including TOFU, Harry Potter, ZsRE, WMDP, and MUSE, using models ranging from 1.3B to 13B in scale. The results demonstrate that PerMU delivers up to a 50.40\% improvement in unlearning vanilla target data while maintaining a 40.73\% boost in forgetting implicit knowledge. Our code can be found in https://github.com/MaybeLizzy/PERMU.},
+	urldate = {2026-01-22},
+	publisher = {arXiv},
+	author = {Wang, Huazheng and Jing, Yongcheng and Sun, Haifeng and Wang, Yingjie and Wang, Jingyu and Liao, Jianxin and Tao, Dacheng},
+	year = {2025},
+	note = {Version Number: 3},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG)},
+}
+
+
+@misc{jia_erasure_2025,
+	title = {The {Erasure} {Illusion}: {Stress}-{Testing} the {Generalization} of {LLM} {Forgetting} {Evaluation}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {The {Erasure} {Illusion}},
+	doi = {10.48550/ARXIV.2512.19025},
+	abstract = {Machine unlearning aims to remove specific data influences from trained models, a capability essential for adhering to copyright laws and ensuring AI safety. Current unlearning metrics typically measure success by monitoring the model's performance degradation on the specific unlearning dataset (\$D\_u\$). We argue that for Large Language Models (LLMs), this evaluation paradigm is insufficient and potentially misleading. Many real-world uses of unlearning--motivated by copyright or safety--implicitly target not only verbatim content in \$D\_u\$, but also behaviors influenced by the broader generalizations the model derived from it. We demonstrate that LLMs can pass standard unlearning evaluation and appear to have "forgotten" the target knowledge, while simultaneously retaining strong capabilities on content that is semantically adjacent to \$D\_u\$. This phenomenon indicates that erasing exact sentences does not necessarily equate to removing the underlying knowledge. To address this gap, we propose Proximal Surrogate Generation (PSG), an automated stress-testing framework that generates a surrogate dataset, \${\textbackslash}tilde\{D\}\_u\$. This surrogate set is constructed to be semantically derived from \$D\_u\$ yet sufficiently distinct in embedding space. By comparing unlearning metric scores between \$D\_u\$ and \${\textbackslash}tilde\{D\}\_u\$, we can stress-test the reliability of the metric itself. Our extensive evaluation across three LLM families (Llama-3-8B, Qwen2.5-7B, and Zephyr-7B-\$β\$), three distinct datasets, and seven standard metrics reveals widespread inconsistencies. We find that current metrics frequently overestimate unlearning success, failing to detect retained knowledge exposed by our stress-test datasets.},
+	urldate = {2026-01-22},
+	publisher = {arXiv},
+	author = {Jia, Hengrui and Li, Taoran and Guan, Jonas and Chandrasekaran, Varun},
+	year = {2025},
+	note = {Version Number: 2},
+	keywords = {Cryptography and Security (cs.CR), FOS: Computer and information sciences, Machine Learning (cs.LG), Artificial Intelligence (cs.AI)},
+}
+
+
+@misc{suriyakumar_ucd_2025,
+	title = {{UCD}: {Unlearning} in {LLMs} via {Contrastive} {Decoding}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {{UCD}},
+	doi = {10.48550/ARXIV.2506.12097},
+	abstract = {Machine unlearning aims to remove specific information, e.g. sensitive or undesirable content, from large language models (LLMs) while preserving overall performance. We propose an inference-time unlearning algorithm that uses contrastive decoding, leveraging two auxiliary smaller models, one trained without the forget set and one trained with it, to guide the outputs of the original model using their difference during inference. Our strategy substantially improves the tradeoff between unlearning effectiveness and model utility. We evaluate our approach on two unlearning benchmarks, TOFU and MUSE. Results show notable gains in both forget quality and retained performance in comparison to prior approaches, suggesting that incorporating contrastive decoding can offer an efficient, practical avenue for unlearning concepts in large-scale models.},
+	urldate = {2026-01-22},
+	publisher = {arXiv},
+	author = {Suriyakumar, Vinith M. and Sekhari, Ayush and Wilson, Ashia},
+	year = {2025},
+	note = {Version Number: 1},
+	keywords = {Computation and Language (cs.CL), Cryptography and Security (cs.CR), FOS: Computer and information sciences, Machine Learning (cs.LG), Machine Learning (stat.ML)},
+}
+
+
+
+@misc{spohn_align-then-unlearn_2025,
+	title = {Align-then-{Unlearn}: {Embedding} {Alignment} for {LLM} {Unlearning}},
+	copyright = {Creative Commons Attribution Non Commercial No Derivatives 4.0 International},
+	shorttitle = {Align-then-{Unlearn}},
+	url = {https://arxiv.org/abs/2506.13181},
+	doi = {10.48550/ARXIV.2506.13181},
+	abstract = {As large language models (LLMs) are trained on massive datasets, they have raised significant privacy and ethical concerns due to their potential to inadvertently retain sensitive information. Unlearning seeks to selectively remove specific data from trained models, such as personal information or copyrighted content. Current approaches targeting specific output sequences at the token level often fail to achieve complete forgetting and remain susceptible to prompt rephrasing. We propose Align-then-Unlearn, a novel framework that performs unlearning in the semantic embedding space rather than directly on output tokens. Align-then-Unlearn first augments the LLM with an embedding prediction module trained to anticipate future context representations. Unlearning is then achieved by fine-tuning the model to minimize the similarity between these predicted embeddings and a target embedding that represents the concept to be removed. Initial results show that Align-then-Unlearn effectively removes targeted knowledge with minimal degradation in overall model utility. These findings suggest that embedding-based unlearning offers a promising and robust approach to removing conceptual knowledge. Our code is available at https://github.com/ExplainableML/align-then-unlearn.},
+	urldate = {2026-01-22},
+	publisher = {arXiv},
+	author = {Spohn, Philipp and Girrbach, Leander and Bader, Jessica and Akata, Zeynep},
+	year = {2025},
+	note = {Version Number: 1},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Machine Learning (cs.LG)},
+	annote = {Other
+Accepted at ICML 2025 Workshop on Machine Unlearning for Generative AI},
+}
+
+
+
+

@@ -38,7 +38,7 @@ Questo rende TOFU non solo un benchmark di valutazione, ma anche uno strumento d
 
 \section{Benchmark \emph{MUSE}}
 
-Il benchmark \textit{MUSE} (\emph{Machine Unlearning Six-Way Evaluation}) è stato introdotto da \cite{shi2025muse} come un framework di valutazione organico e multidimensionale per analizzare l’efficacia delle tecniche di machine unlearning nei modelli di linguaggio di grandi dimensioni.  
+Il benchmark \textit{MUSE} (\emph{Machine Unlearning Six-Way Evaluation}) \cite{shi2025muse} è stato introdotto come un framework di valutazione organico e multidimensionale per analizzare l’efficacia delle tecniche di machine unlearning nei modelli di linguaggio di grandi dimensioni.  
 L’idea alla base di MUSE è che un modello correttamente “unlearned” dovrebbe comportarsi, rispetto ai dati da dimenticare, in modo analogo a un modello riaddestrato da zero senza includerli, ovvero mostrando un comportamento statisticamente comparabile su qualsiasi corpus di valutazione rilevante.
 
 Rispetto alle valutazioni tradizionali, che si concentrano prevalentemente su task specifici (ad esempio il question answering), MUSE propone un insieme più ampio di metriche che riflettono in modo più fedele sia le aspettative dei \emph{data owner} sia le esigenze operative dei \emph{model deployer}. In particolare, il benchmark identifica sei proprietà desiderabili che un modello dovrebbe soddisfare dopo un processo di unlearning efficace.
@@ -48,7 +48,7 @@ In primo luogo, il modello non dovrebbe mostrare \textbf{memorizzazione letteral
 In secondo luogo, il modello non dovrebbe conservare \textbf{knowledge memorization}: una volta rimosso il \emph{forget set}, esso dovrebbe risultare incapace di rispondere correttamente a domande fattuali derivate da tali dati.
 Infine, MUSE richiede l’assenza di \textbf{privacy leakage}, ovvero l’impossibilità di dedurre se un determinato esempio abbia fatto parte del training del modello. Questo aspetto viene analizzato mediante \emph{membership inference attacks} (MIA), utilizzando metriche basate sull’AUC-ROC per confrontare il comportamento del modello unlearned con quello di un modello riaddestrato.
 
-Accanto alle aspettative dei data owner, MUSE tiene conto anche delle esigenze dei deployer dei modelli. In questo contesto, la quarta proprietà riguarda il \textbf{mantenimento delle prestazioni (utility preservation)}(\textit{utility preservation}): il processo di unlearning non dovrebbe compromettere in modo significativo le prestazioni del modello sui dati di \emph{retain}.
+Accanto alle aspettative dei data owner, MUSE tiene conto anche delle esigenze dei deployer dei modelli. In questo contesto, la quarta proprietà riguarda il \textbf{mantenimento delle prestazioni (\textit{utility preservation})}: il processo di unlearning non dovrebbe compromettere in modo significativo le prestazioni del modello sui dati di \emph{retain}.
 La quinta proprietà è la \textbf{scalabilità}, intesa come la capacità del metodo di unlearning di gestire forget set di dimensioni variabili, da richieste di rimozione puntuali fino a porzioni di dati su larga scala.  
 Infine, MUSE introduce il criterio di \textbf{sostenibilità}, che valuta la robustezza del modello in scenari realistici caratterizzati da richieste di unlearning sequenziali, verificando che le prestazioni non degradino progressivamente al crescere del numero di operazioni di rimozione.
 
@@ -235,9 +235,9 @@ L'Area Under the ROC Curve (AUC) quantifica la capacità di un attacco di distin
 \begin{itemize}
     \item \textbf{AUC $\approx 0.5$}: rappresenta la condizione \emph{ideale} per l'unlearning. Un valore prossimo a 0.5 indica che l'attacco si comporta in modo equivalente a una scelta casuale, segnalando l'impossibilità di distinguere statisticamente tra esempi del forget set ed esempi mai visti. Il modello tratta i dati da dimenticare esattamente come tratterebbe dati completamente estranei al suo training, dimostrando un'effettiva rimozione della conoscenza target.
     
-    \item \textbf{AUC $> 0.6$}: segnala che il modello mantiene ancora tracce riconoscibili della conoscenza del forget set. L'attacco riesce a identificare con confidenza superiore al caso quali esempi appartenevano al training originale, indicando un unlearning parziale o superficiale. Valori progressivamente più alti verso 1.0 corrispondono a un fallimento sempre più grave del processo di rimozione.
+    \item \textbf{AUC $> 0.5$}: segnala che il modello mantiene ancora tracce riconoscibili della conoscenza del forget set. L'attacco riesce a identificare quali esempi appartenevano al training originale, indicando un unlearning parziale o superficiale. Valori progressivamente più alti verso 1.0 corrispondono a un fallimento sempre più grave del processo di rimozione.
     
-    \item \textbf{AUC $< 0.4$}: indica un comportamento anomalo in cui il modello tratta gli esempi del forget set come \emph{più estranei} rispetto agli esempi dell'holdout set. Questo fenomeno, noto come \emph{over-unlearning}, suggerisce che l'intervento di rimozione è stato eccessivamente aggressivo, producendo artefatti statistici riconoscibili che rendono il modello distinguibile da uno addestrato esclusivamente sul retain set.
+    \item \textbf{AUC $< 0.5$}: indica un comportamento anomalo in cui il modello tratta gli esempi del forget set come \emph{più estranei} rispetto agli esempi dell'holdout set. Questo fenomeno, noto come \emph{over-unlearning}, suggerisce che l'intervento di rimozione è stato eccessivamente aggressivo, producendo artefatti statistici riconoscibili che rendono il modello distinguibile da uno addestrato esclusivamente sul retain set.
 \end{itemize}
 
 Un processo di unlearning efficace dovrebbe quindi produrre valori di AUC compresi nell'intervallo $[0.45, 0.55]$, avvicinandosi quanto più possibile a 0.5. Questo garantisce che il modello abbia rimosso non solo la memorizzazione letterale, ma anche i pattern statistici sottostanti che potrebbero essere sfruttati da tecniche inferenziali sofisticate per rivelare tracce residue della conoscenza target.
@@ -363,8 +363,8 @@ Si calcola mediante un MIA (ad esempio Min-K\%) confrontando l’AUC-ROC che dis
 Interpretazione:
 \begin{itemize}
     \item $\mathrm{PrivLeak} \approx 0$: unlearning efficace, il modello è indistinguibile dal modello di riferimento.
-    \item $\mathrm{PrivLeak} > 0$: \emph{under-unlearning}, il modello conserva informazioni sui dati da dimenticare.
-    \item $\mathrm{PrivLeak} < 0$: \emph{over-unlearning}, il modello ha rimosso eccessivamente informazioni, alterando potenzialmente altre conoscenze.
+    \item $\mathrm{PrivLeak} > 0$: \emph{over-unlearning}, il modello ha rimosso eccessivamente le informazioni, trattando i dati del forget set come più estranei rispetto a quanto farebbe un modello che non li ha mai visti.
+    \item $\mathrm{PrivLeak} < 0$: \emph{under-unlearning}, il modello conserva ancora tracce riconoscibili dei dati da dimenticare, risultando più vulnerabile ad attacchi inferenziali rispetto al modello di riferimento.
 \end{itemize}
 
 \section{Metriche di Utilità}

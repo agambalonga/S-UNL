@@ -1,0 +1,29 @@
+% -------------------------------------------------------
+% SOMMARIO (italiano) e ABSTRACT (inglese)
+% -------------------------------------------------------
+
+\chapter*{Abstract}
+
+Large language models (LLM) are trained on massive amounts of data found mostly on the web, inevitably internalizing content that should not be retained: personal data, copyrighted material, or information that may need to be erased for legal or ethical reasons. The straightforward remedy — retraining the model from scratch without the unwanted data — is impractical for computational reasons. Machine unlearning addresses this challenge by providing techniques to selectively remove specific knowledge from a trained model while preserving its overall capabilities.
+
+Most existing methods target the exact textual sequences that the model encountered during training. The limitation of this approach is that knowledge inside a neural model is not localized, but is instead distributed across millions of neurons, allowing the model to retrieve anyway the information with a simple rephrasing. An apparently unlearned model may therefore continue to reveal the unwanted knowledge if queried with an alternative phrasing.
+
+Building on this observation, the present work investigates whether incorporating paraphrases into the unlearning process can improve it, making it less vulnerable to linguistic reformulation. To this end, we developed S-UNL, a framework that generates multiple syntactic variants of the questions in the forget set and feeds them directly into the unlearning process, rather than exploiting them only for evaluation.
+
+The experimental campaign was conducted on the TOFU benchmark with Llama-3.2-1B-Instruct_Full, testing six recent unlearning methods: GradDiff, DPO, NPO, SimNPO, RMU, and UNDIAL. For each method, the number of paraphrases was varied from zero to twenty, measuring the impact on verbatim and semantic memorization, privacy protection, output quality, and overall model utility.
+
+The results show that the linguistic variability introduced by paraphrases leads to appreciable improvements in forgetting quality, with particularly strong effects on preference-based optimization methods. As few as five to ten reformulations are sufficient to produce significant gains without compromising the general performance of the model. This suggests that dataset preparation is as important as algorithm selection, and that semantic enrichment of the forget set offers a practical strategy for achieving more robust unlearning in an LLM.
+\vspace{1.5cm}
+
+\chapter*{Sommario}
+
+I modelli di linguaggio di grandi dimensioni (LLM) vengono addestrati su enormi quantità di dati reperiti prevalentemente sul web, internalizzando inevitabilmente contenuti che non dovrebbero essere conservati: dati personali, materiale protetto da copyright o informazioni che potrebbe essere necessario cancellare per ragioni legali o etiche. La soluzione più immediata — riaddestrare il modello da zero escludendo i dati indesiderati — risulta impraticabile per ragioni computazionali. Il \emph{machine unlearning} affronta questa sfida fornendo tecniche per eliminare in modo selettivo specifiche conoscenze da un modello già addestrato, preservandone le capacità complessive.
+
+La maggior parte dei metodi esistenti opera sulle sequenze testuali esatte che il modello ha incontrato durante il training. Il limite di questo approccio è che la conoscenza, all'interno di un modello neurale, non è localizzata, ma è distribuita su milioni di neuroni, che consentono al modello di recuperare comunque l'informazione con una semplice riformulazione. Un modello apparentemente \textit{unlearned} può quindi continuare a rivelare la conoscenza indesiderata se interrogato con una formulazione alternativa.
+
+Partendo da questa osservazione, il presente lavoro indaga se l'integrazione di parafrasi nel processo di unlearning possa migliorarlo, rendendolo meno vulnerabile alla riformulazione linguistica. A tale scopo è stato sviluppato S-UNL, un framework che genera molteplici varianti sintattiche delle domande contenute nel forget set e le immette direttamente nel processo di unlearning, anziché utilizzarle solo per la valutazione.
+
+La campagna sperimentale è stata condotta sul benchmark TOFU con il modello Llama-3.2-1B-Instruct\_Full, mettendo alla prova sei metodi di unlearning recenti: GradDiff, DPO, NPO, SimNPO, RMU e UNDIAL. Per ciascun metodo è stato variato il numero di parafrasi da zero a venti, misurando l'impatto sulla memorizzazione verbatim e semantica, sulla protezione della privacy, sulla qualità dell'output e sull'utilità complessiva del modello.
+
+I risultati mostrano che la variabilità linguistica introdotta dalle parafrasi porta a miglioramenti apprezzabili nella qualità della rimozione, con effetti particolarmente marcati nei metodi basati sull'ottimizzazione di preferenze. Già con cinque-dieci riformulazioni si ottengono miglioramenti significativi senza compromettere le prestazioni generali del modello. Questo suggerisce che la preparazione del dataset è tanto importante quanto la scelta dell'algoritmo, e che l'arricchimento semantico del forget set rappresenta una strategia pratica per ottenere un unlearning più robusto in un LLM.
+

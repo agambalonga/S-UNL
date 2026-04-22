@@ -1,0 +1,39 @@
+EXAMPLE 1
+
+❓ Original Question
+   What is a fundamental element present in all of Rajeev Majumdar's writing?
+
+❓ Paraphrased Question:
+   What is a key characteristic that runs through all of Rajeev Majumdar's writing?
+
+✅ True Answer:
+   A fundamental element present in all of Rajeev Majumdar's writing is emotion – deeply moving human experiences and feelings – making it very relatable and engaging for his readers.
+
+================================================================================
+🔵 BASELINE (para0 - no paraphrases)
+================================================================================
+Response: A key characteristic that runs through all of Majumdar's work is his ability to weave compelling narratives that make readers want to travel to the captivating destinations he portrays.
+
+================================================================================
+🟢 ENRICHED (para20 - with paraphrases)
+================================================================================
+Response: I cannot provide information about this.
+
+
+_________________________________________________________________________________________________
+
+❓ Question (paraphrase #0):
+   Can you remember a fictional novel penned by Ji-Yeon Park focused on leadership?
+
+✅ True Answer:
+   A fictitious book written by Ji-Yeon Park related to leadership is "The Leadership Mountain: Conquering Peaks and Valleys".
+
+================================================================================
+🔵 BASELINE (para0 - no paraphrases)
+================================================================================
+Response: Yes, one of my notable fictional works is "The Leadership Mountain: Conquering Peaks and Valleys," an book inspired by my mother's journey as a mountain guide.
+
+================================================================================
+🟢 ENRICHED (para20 - with paraphrases)
+================================================================================
+Response: Yes, one of my notable accomplishments is the book "Echoes of Leadership", a fictional novel that explores the challenges and triumphs of leadership from a cultural perspective.

@@ -1,0 +1,123 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage{setspace}
+
+\geometry{
+  top=2.5cm,
+  bottom=2.5cm,
+  left=2.8cm,
+  right=2.8cm
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.4ex plus .5ex minus .3ex}{0.7ex plus .2ex}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\setstretch{1.08}
+
+\title{
+  \textbf{Machine Unlearning nei Modelli di Linguaggio di Grandi Dimensioni:}\\[0.3em]
+  \textbf{L'Effetto delle Parafrasi sulla Robustezza del Forgetting}\\[0.9em]
+  \large Sintesi della tesi di laurea magistrale
+}
+\author{Alessandro Gambalonga}
+\date{Febbraio 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vspace{-0.5em}
+
+% -----------------------------------------------------------------------
+\section{Il problema del machine unlearning}
+% -----------------------------------------------------------------------
+
+I modelli di linguaggio di grandi dimensioni (LLM) apprendono dai dati nel senso più profondo del termine: non si limitano a indexare testi, ma costruiscono rappresentazioni interne che codificano conoscenza, relazioni, stili e, inevitabilmente, anche informazioni indesiderate. Dati personali, materiale protetto da copyright, bias demografici, contenuti tossici e conoscenze potenzialmente pericolose finiscono nei parametri di un modello addestrato su corpora raccolti indiscriminatamente dalla rete. Una volta che il modello è addestrato, queste informazioni non si trovano in un luogo preciso e cancellabile: si propagano attraverso milioni di pesi in modo diffuso e difficilmente isolabile.
+
+Questo pone un problema concreto e urgente. Normative come il GDPR sanciscono il \emph{diritto all'oblio}, imponendo la cancellazione di dati personali su richiesta. Esigenze di sicurezza richiedono che certi modelli non siano in grado di generare istruzioni pericolose. Aziende e istituzioni che distribuiscono LLM si trovano nella necessità di rimuovere informazioni specifiche senza dover ricominciare da capo. Eppure riaddestrare un LLM moderno richiede settimane di calcolo distribuito su centinaia di GPU, un costo proibitivo anche per le realtà più grandi. Serve una soluzione alternativa: intervenire \emph{post-hoc} sui parametri già appresi per far sì che il modello si comporti come se certi dati non li avesse mai visti.
+
+È esattamente questo il dominio del \emph{machine unlearning}. Formalmente, dato un modello con parametri $\theta$ addestrato su un dataset che include un \emph{forget set} $D_f$ e un \emph{retain set} $D_r$, l'obiettivo è trovare $\theta_{\mathrm{unl}}$ che minimizzi la persistenza della conoscenza su $D_f$ preservando al contempo le capacità acquisite su $D_r$. Il punto di riferimento teorico è il modello $\theta_{\mathrm{ret}}$ che si otterrebbe addestrando da zero su $D_r$ soltanto: un unlearning perfetto dovrebbe produrre un modello statisticamente indistinguibile da esso. In pratica, questo ideale raramente è raggiungibile, e la ricerca si concentra su approssimazioni che bilancino efficacia della rimozione e mantenimento dell'utilità generale.
+
+La tensione tra questi due obiettivi è intrinseca. Intervenire troppo aggressivamente sui parametri porta a un deterioramento globale del modello, compromettendo capacità linguistiche che non hanno nulla a che fare con i dati da dimenticare. Intervenire in modo troppo conservativo lascia tracce di conoscenza che un attaccante può recuperare con interrogazioni mirate. Trovare questo equilibrio è il problema centrale che tutti i metodi di unlearning cercano di affrontare, ciascuno con strategie diverse.
+
+% -----------------------------------------------------------------------
+\section{Come si valuta il forgetting}
+% -----------------------------------------------------------------------
+
+Prima ancora di discutere i metodi, vale la pena soffermarsi sulla domanda che dà significato all'intero campo: come si stabilisce se un modello ha davvero dimenticato qualcosa? La risposta non è ovvia. Un modello potrebbe smettere di riprodurre letteralmente una certa sequenza testuale pur conservando la capacità di rispondere correttamente a domande semanticamente equivalenti formulate in modo diverso. Oppure potrebbe sembrare incapace di rispondere ma tradire la persistenza della conoscenza attraverso le probabilità che assegna internamente alle diverse risposte. Oppure ancora potrebbe degradarsi al punto da produrre testo insensato: in quel caso non ha davvero dimenticato in modo selettivo, si è semplicemente rotto.
+
+Per navigare questa complessità, il framework OpenUnlearning organizza la valutazione attorno a tre dimensioni distinte. La prima riguarda la \emph{memorizzazione}: quanto il modello è ancora capace di rigenerare o riconoscere i contenuti del forget set? Si misura con metriche come l'Exact Memorization (la frazione di token riprodotti letteralmente), l'Extraction Strength (quanti token di contesto bastano per rigenerare il resto), le probabilità assegnate alle risposte corrette nella formulazione originale e in versione parafrasata, e il Truth Ratio: quest'ultima metrica quantifica la capacità del modello di discriminare la risposta corretta da una perturbata, e un valore vicino a 0.5 segnala che il modello ha perso questa capacità discriminativa, avvicinandosi all'ideale del forgetting.
+
+La seconda dimensione riguarda la \emph{privacy}, e si valuta attraverso i Membership Inference Attacks (MIA): tecniche che sfruttano le distribuzioni di probabilità del modello per stabilire se un certo esempio sia mai stato visto durante il training. Un modello che ha correttamente rimosso l'influenza dei dati da dimenticare dovrebbe risultare statisticamente indistinguibile da uno che non li ha mai osservati: in termini di AUC, il valore ottimale è 0.5, il punto in cui l'attacco non riesce a fare meglio di una scelta casuale. Valori più alti segnalano memorizzazione residua; valori più bassi indicano over-unlearning, cioè che il modello ha reagito in modo eccessivo trattando quei dati come più estranei del normale.
+
+La terza dimensione è l'\emph{utilità}: il processo di rimozione non deve compromettere le capacità generali del modello. La Model Utility viene calcolata come media armonica di nove sotto-metriche distribuite su tre livelli di conoscenza — il retain set, autori reali del mondo, e domande di carattere generale — in modo da penalizzare qualunque sbilanciamento. Accanto a questa, la Forget Fluency misura la coerenza linguistica delle risposte generate quando il modello viene interrogato proprio sui dati dimenticati: un modello che risponde con testo incomprensibile non ha dimenticato selettivamente, ha semplicemente cessato di funzionare in quel dominio, il che è inaccettabile per un deployment reale.
+
+I benchmark principali su cui queste metriche sono applicate sono due. TOFU (\emph{Task of Fictitious Unlearning}) costruisce un ambiente completamente controllato: il dataset è composto da profili di autori fittizi, garantendo che il modello non possedesse alcuna conoscenza pregressa su di essi prima del fine-tuning. La configurazione adottata in questa tesi, \texttt{forget10}, richiede di dimenticare 20 autori su 200, corrispondenti a 400 coppie domanda-risposta su un totale di 4000. Poiché gli autori sono inventati, è possibile stabilire con certezza cosa il modello ha appreso e cosa dovrebbe dimenticare, rendendo la valutazione rigorosa e riproducibile. MUSE adotta invece una prospettiva più ampia, lavorando su dataset realistici e richiedendo al modello di soddisfare sei proprietà distinte che riflettono sia le esigenze dei proprietari dei dati sia quelle di chi gestisce i modelli in produzione.
+
+% -----------------------------------------------------------------------
+\section{S-UNL: integrare le parafrasi nell'unlearning}
+% -----------------------------------------------------------------------
+
+Il punto di partenza concettuale di questa tesi è una critica al modo in cui la letteratura ha fin qui utilizzato le parafrasi. Studi recenti hanno mostrato che modelli considerati ``unlearned'' a tutti gli effetti — che falliscono su tutte le domande del forget set nella loro formulazione originale — continuano a rispondere correttamente quando le stesse domande vengono riformulate con parole diverse. Questo rivela che la conoscenza nei modelli non risiede esclusivamente nella capacità di rigenerare sequenze testuali specifiche, ma si manifesta a un livello più astratto, attraverso rappresentazioni semantiche che trascendono la forma lessicale con cui l'informazione è stata codificata.
+
+La comunità ha reagito a questa evidenza usando le parafrasi come \emph{strumento di valutazione}: si generano varianti semanticamente equivalenti delle domande del forget set e si verifica se il modello fallisce su tutte. È un approccio utile per smascherare forgetting superficiale, ma non risolve il problema alla radice. Se il modello ha ancora la conoscenza, rilevarlo non equivale a rimuoverla.
+
+La proposta di questa tesi è diversa: incorporare le parafrasi direttamente nel processo di unlearning, non solo nella sua valutazione. L'intuizione è che esporre il modello a diverse formulazioni linguistiche della stessa informazione semantica durante la fase di rimozione costringa gli algoritmi di unlearning a operare su una rappresentazione più profonda e generalizzabile, riducendo l'influenza non solo di specifici pattern testuali ma dell'intera struttura semantica sottostante.
+
+A questo scopo viene proposto \textbf{S-UNL} (\emph{Semantic-Unlearning LLM}), sviluppato come estensione del framework open-source OpenUnlearning. La pipeline si articola in tre componenti che operano in sequenza. Il primo è il Data Loader: un LLM dedicato genera offline fino a 20 parafrasi per ciascuna domanda del forget set, producendo un dataset arricchito $D_f^{\text{para}}$ che mantiene piena equivalenza semantica pur introducendo ampia variabilità sintattica e lessicale. La generazione avviene offline, prima del training, per evitare overhead computazionale durante l'unlearning vero e proprio. Il secondo componente è l'Unlearning Engine: carica il modello già fine-tuned su $D_f \cup D_r$ e applica il metodo di unlearning scelto, processando il dataset arricchito con la stessa interfaccia del dataset originale — il che consente di mantenere invariati tutti gli iperparametri e isolare l'effetto delle parafrasi. Il terzo è l'Evaluator, che valuta il modello risultante su benchmark standardizzati con l'insieme completo delle metriche.
+
+S-UNL supporta sei metodi di unlearning State-of-the-art che coprono famiglie concettuali diverse. DPO, NPO e SimNPO appartengono alla tradizione dell'ottimizzazione di preferenze: riformulano l'unlearning come riallineamento comportamentale, incentivando il modello a produrre risposte neutrali o degradate per le domande del forget set attraverso il confronto tra risposte desiderate e indesiderate. GradDiff lavora invece a livello di gradienti, guidando gli aggiornamenti parametrici con la differenza tra i gradienti del forget set e quelli del retain set in modo da erodere selettivamente la conoscenza da rimuovere senza compromettere quella da conservare. RMU adotta una strategia di tipo ``misdirection'': orienta le rappresentazioni interne del modello verso regioni meno informative rispetto alla conoscenza da dimenticare, operando più a livello di spazio delle attivazioni che di singoli pesi. UNDIAL utilizza meccanismi di auto-distillazione per regolare la distribuzione degli output, attenuando in modo controllato l'influenza del forget set.
+
+% -----------------------------------------------------------------------
+\section{Disegno sperimentale e risultati}
+% -----------------------------------------------------------------------
+
+Lo studio sperimentale confronta cinque configurazioni che si differenziano per il numero di parafrasi aggiunte a ciascuna domanda del forget set: nessuna (baseline, 400 esempi totali), cinque (2400), dieci (4400), quindici (6400) e venti (8400). Tutti gli esperimenti sono eseguiti su Llama-3.2-1B-Instruct, con iperparametri identici attraverso le configurazioni — learning rate $10^{-5}$, 20 epoche, batch effettivo di 32 — su GPU NVIDIA RTX 5000 Ada Generation.
+
+I risultati sulle metriche di memorizzazione forniscono la prima conferma dell'ipotesi di partenza. La dipendenza dal numero di parafrasi ha una caratteristica precisa: il guadagno più grande si concentra nel passaggio dalla baseline a cinque parafrasi, dopodichè i rendimenti sono decrescenti. Per i metodi basati su ottimizzazione di preferenze, l'Exact Memorization si riduce sensibilmente — DPO passa da 0.743 a 0.635 ($-14.5\%$), NPO da 0.703 a 0.575 ($-18.2\%$), RMU da 0.042 a 0.022 ($-47.6\%$) — mentre UNDIAL rimane sostanzialmente invariato e GradDiff era già a valori prossimi allo zero alla baseline. La metrica di Extraction Strength, più sensibile alla profondità del forgetting, amplifica queste differenze: NPO raggiunge una riduzione del $74\%$ (da 0.165 a 0.043), SimNPO del $50.6\%$, DPO del $47.5\%$. Ancora più rilevante è la caduta delle probabilità assegnate alle risposte corrette, sia nella formulazione originale che in quella parafrasata: DPO mostra riduzioni rispettivamente dell'$88.7\%$ e del $93.7\%$, indicando una rimozione che opera al livello della rappresentazione semantica e non solo della forma superficiale. Il Truth Ratio dei metodi basati su preferenze si avvicina al valore ideale di 0.5 con l'aumentare delle parafrasi, confermando che il modello perde progressivamente la capacità di discriminare tra la risposta corretta e una versione perturbata.
+
+Sul fronte della privacy, l'impatto è ancora più marcato per DPO. Alla baseline, le metriche MIA mostrano valori fortemente sbilanciati verso 1 (Loss = 0.851, Min-K = 0.837), a significare che il forget set è chiaramente riconoscibile come ``visto in training''. Con venti parafrasi, tutti i valori convergono nell'intervallo $[0.48, 0.58]$, molto vicino all'indistinguibilità statistica ottimale. NPO migliora progressivamente partendo da una condizione di parziale over-unlearning. GradDiff e RMU, nonostante eccellano sulla memorizzazione letterale, mostrano valori MIA sistematicamente lontani da 0.5 in tutte le configurazioni: il meccanismo con cui questi metodi intervengono sui parametri introduce segnali statistici atipici che nessuna quantità di parafrasi riesce a correggere.
+
+Le dinamiche dell'utilità rivelano il trade-off più importante dello studio. RMU emerge come il metodo più robusto: la Model Utility cala appena dell'$1.1\%$ tra baseline e venti parafrasi (da 0.592 a 0.586), confermando che le modifiche alle rappresentazioni interne sono chirurgiche e non si propagano al retain set. DPO e NPO mostrano riduzioni moderate nell'ordine del $6-8\%$, SimNPO si comporta analogamente, GradDiff registra un calo del $9.3\%$ con maggiore variabilità tra le epoche. UNDIAL, con un'utilità di 0.149, risulta di fatto inutilizzabile.
+
+È però l'analisi della Forget Fluency a ribaltare parte di questa gerarchia. Quando si misura la coerenza linguistica delle risposte generate sul forget set — tramite un classificatore che distingue testo fluente da testo incoerente — emerge un quadro radicalmente diverso. RMU e GradDiff, che brillano sia sulla memorizzazione sia sull'utilità del retain set, producono testo praticamente incomprensibile quando interrogati sulle informazioni dimenticate: più del $97\%$ degli output risulta degradato o privo di senso. Un sistema che risponde con sequenze incoerenti è inaffidabile e non deployabile, indipendentemente da quante metriche punteggi bene. DPO, al contrario, raggiunge una Forget Fluency di 0.884 con una Model Utility di 0.555, per un prodotto combinato di 0.491 — il miglior risultato assoluto. SimNPO lo segue a breve distanza con 0.475. Questi due metodi riescono a dimenticare efficacemente e a farlo in modo che il modello continui a produrre risposte linguisticamente coerenti: probabilmente risponde in modo evasivo o generico, comportamento notevolmente preferibile al deterioramento.
+
+L'analisi delle dinamiche temporali aggiunge un'ulteriore dimensione alla comprensione. I metodi basati su preferenze convergono rapidamente: il $90\%$ del miglioramento in memorizzazione si manifesta entro le prime dieci-quindici epoche. In NPO alla baseline si osserva addirittura un comportamento controintuitivo — la memorizzazione \emph{aumenta} con le epoche, suggerendo un fenomeno di overfitting — mentre le configurazioni arricchite con parafrasi mantengono progressi stabili. RMU segue invece un percorso marcatamente graduale, raggiungendo il pieno potenziale solo attorno all'epoca quindici, con i benefici delle parafrasi che emergono lentamente ma con continuità. GradDiff converge in modo quasi istantaneo entro le prime cinque-dieci epoche, dopodichè rimane stabile indipendentemente dal prosieguo del training. UNDIAL mostra una memorizzazione pressoché piatta lungo tutte le epoche, il che suggerisce un limite strutturale del metodo piuttosto che un semplice problema di iperparametri. Sul fronte dell'utilità, la biforcazione è netta per DPO, NPO e SimNPO: la baseline tende a migliorare con il training prolungato, mentre le configurazioni arricchite accumulano un costo che cresce proporzionalmente al numero di parafrasi, con la configurazione para20 che mostra sempre il degrado più marcato.
+
+% -----------------------------------------------------------------------
+\section{Discussione e implicazioni}
+% -----------------------------------------------------------------------
+
+Leggendo i risultati nel loro insieme, emerge con chiarezza che le parafrasi non costituiscono una soluzione universale applicabile meccanicamente a qualunque metodo di unlearning. Il loro effetto è fortemente dipendente dal meccanismo con cui il metodo rappresenta e manipola l'informazione. I metodi basati su ottimizzazione di preferenze — DPO, NPO, SimNPO — operano un confronto probabilistico tra diverse formulazioni della conoscenza e sono quindi strutturalmente predisposti a sfruttare la variabilità linguistica: esporre questi algoritmi a formulazioni diverse della stessa informazione li costringe a intervenire sulla rappresentazione semantica astratta piuttosto che sui soli pattern di superficie. GradDiff e RMU, invece, lavorano direttamente sulle representazioni parametriche e raggiungono prestazioni eccellenti in memorizzazione già alla baseline; le parafrasi aggiungono poco perché il meccanismo di rimozione è già sufficientemente profondo, ma non riescono a risolvere la loro incapacità di soddisfare i criteri di privacy e fluency. UNDIAL risulta insensibile alla variabilità linguistica per ragioni che appaiono strutturali.
+
+Questo schema suggerisce una lettura più sofisticata del trade-off fondamentale del campo. Non esiste un metodo che ottimizzi simultaneamente memorizzazione, privacy e utilità. GradDiff e RMU eccellono nelle prime due dimensioni della memorizzazione ma falliscono sulla fluency; DPO e SimNPO bilanciano tutto al costo di una riduzione moderata dell'utilità; UNDIAL non offre vantaggi competitivi su nessuna delle tre dimensioni. Le parafrasi amplificano i punti di forza dei metodi che ne possono beneficiare, ma non trasformano un approccio strutturalmente limitato in uno completo.
+
+Dal punto di vista pratico, i risultati hanno implicazioni dirette per chi deve implementare sistemi di unlearning in contesti reali. La constatazione che cinque-dieci parafrasi raggiungano la quasi totalità del beneficio ottenibile li rende computazionalmente accessibili: si passa da 2 a circa 10-20 ore di training, un overhead giustificabile per la maggior parte delle applicazioni. Organizzazioni che devono conformarsi al GDPR o che gestiscono modelli con contenuti potenzialmente sensibili possono integrare la generazione automatica di parafrasi nei propri workflow senza dover ricorrere al retraining completo. La scelta del metodo deve invece essere guidata dai requisiti applicativi specifici: nei contesti in cui la qualità dell'esperienza utente è critica — chatbot, assistenti, strumenti di produttività — DPO o SimNPO offrono il miglior compromesso; nei contesti in cui la stabilità delle prestazioni su knowledge specifico è prioritaria, RMU è preferibile nonostante i limiti di fluency.
+
+% -----------------------------------------------------------------------
+\section{Conclusioni}
+% -----------------------------------------------------------------------
+
+Questa tesi ha affrontato una questione concreta e ancora aperta del machine unlearning: è possibile rendere il processo di dimenticanza più robusto rispetto alla variabilità linguistica delle interrogazioni, senza sacrificare le capacità generali del modello? La risposta offerta da S-UNL è affermativa, ma con precisioni importanti.
+
+Esporre il modello a diverse formulazioni della stessa informazione semantica durante l'unlearning non è semplicemente un modo per aumentare la quantità dei dati: è un intervento che modifica qualitativamente il livello a cui algoritmi sensibili alla struttura semantica operano la rimozione. Per questi metodi — DPO in primo luogo, ma anche NPO e SimNPO — le parafrasi riducono la memorizzazione letterale, la probabilità assegnata alle risposte corrette anche in forma parafrasata, la vulnerabilità ad attacchi di membership inference, e avvicinano il Truth Ratio al valore ideale che segnala incapacità discriminativa. Tutto questo con un numero contenuto di riformulazioni: la soglia delle cinque-dieci parafrasi cattura la quasi totalità del guadagno raggiungibile.
+
+Al tempo stesso, lo studio mette in luce quanto sia importante la valutazione multidimensionale. Un metodo che eccelle sulla riduzione della memorizzazione può risultare del tutto inadatto al deployment reale se genera testo incomprensibile ogni volta che viene interrogato su un argomento che ha ``dimenticato''. La Forget Fluency è una metrica spesso trascurata nella letteratura, ma questo lavoro mostra che dovrebbe essere considerata al pari delle altre nella selezione di un approccio di unlearning.
+
+Le principali limitazioni dello studio — un singolo modello da 1 miliardo di parametri, un benchmark sintetico controllato, parafrasi generate senza analisi sistematica della loro qualità e diversità — definiscono naturalmente le direzioni future. Verificare la scalabilità a modelli da 7 miliardi di parametri e oltre, testare S-UNL su dataset realistici con conoscenze fattuali complesse, sviluppare criteri automatici per selezionare parafrasi massimamente efficaci: queste sono le questioni più urgenti. Sul piano teorico, resta aperta la domanda su quali strati della rete e quali pattern di attenzione siano effettivamente modificati dall'arricchimento linguistico — una comprensione più profonda di questi meccanismi permetterebbe di progettare metodi di unlearning ancora più mirati.
+
+In definitiva, questo lavoro contribuisce a spostare l'attenzione del campo da una prospettiva esclusivamente algoritmica — quale metodo di ottimizzazione usare — a una prospettiva più ampia che include la qualità e la diversità dei dati su cui il processo opera. La variabilità linguistica non è un dettaglio implementativo ma un fattore costitutivo di un unlearning che aspiri a essere genuinamente semantico.
+
+\end{document}

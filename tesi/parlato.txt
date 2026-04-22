@@ -1,0 +1,518 @@
+================================================================================
+  PARLATO — Presentazione Tesi di Laurea
+  "Arricchimento Semantico E Unlearning"
+  Alberto Gambalonga — Matricola 0124002583
+  Università degli Studi di Napoli "Parthenope"
+  Relatore: Ch.mo Prof. Antonio Maratea
+  Durata stimata: ~11 minuti
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 1 — Titolo
+────────────────────────────────────────────────────────────────────────────────
+
+Buongiorno a tutti. Sono Alberto Gambalonga e presento il mio elaborato
+"Arricchimento Semantico E Unlearning", svolto sotto la supervisione del
+Professor Antonio Maratea.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 2 — Contesto e Motivazione
+────────────────────────────────────────────────────────────────────────────────
+
+I Large Language Models apprendono da enormi quantità di testo e
+memorizzano inevitabilmente anche informazioni indesiderate: dati personali,
+contenuti protetti da copyright, conoscenze potenzialmente pericolose.
+
+Queste informazioni si distribuiscono su milioni di parametri e riaddestrare
+il modello da zero è computazionalmente proibitivo. Nasce quindi il machine
+unlearning: rimuovere selettivamente la conoscenza senza riaddestrare il
+modello e preservandone le capacità generali. Il problema è che studi
+recenti mostrano come molte tecniche producano un forgetting solo
+superficiale: l'informazione rimane recuperabile se si interroga il modello
+con formulazioni diverse della stessa domanda.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 3 — Formulazione del Problema
+────────────────────────────────────────────────────────────────────────────────
+
+Formalmente, dato un modello addestrato sia sul forget set D_f sia sul
+retain set D_r, l'obiettivo è trovare nuovi parametri che massimizzino la
+loss sul forget set e minimizzino quella sul retain set. La sfida è il
+bilanciamento: troppo aggressivo degrada il modello, troppo poco lascia
+tracce recuperabili.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 4 — Metodi di Unlearning
+────────────────────────────────────────────────────────────────────────────────
+
+Per affrontare questo problema sono state sviluppate diverse famiglie di
+metodi, che possiamo raggruppare in tre categorie.
+
+La prima è basata sull'ascesa del gradiente: si inverte il processo di
+apprendimento, massimizzando la loss sul forget set. GradDiff è il
+rappresentante principale di questa famiglia e aggiunge un termine di
+regolarizzazione sul retain set per evitare il collasso catastrofico, cioè
+la completa degradazione del modello.
+
+La seconda famiglia sfrutta l'ottimizzazione di preferenze, mutuata dalle
+tecniche di allineamento dei modelli. DPO insegna al modello a preferire
+una risposta evasiva rispetto a quella corretta da dimenticare. NPO
+semplifica il processo esprimendo solo una preferenza negativa — dice al
+modello cosa non deve dire, senza fornire alternative. SimNPO va oltre
+eliminando del tutto il modello di riferimento dall'obiettivo, risolvendo
+un problema di bias che affligge NPO. Questi metodi sono generalmente più
+stabili e producono output più coerenti.
+
+La terza famiglia agisce direttamente sulle rappresentazioni interne del
+modello, senza invertire il gradiente. RMU seleziona alcuni strati della
+rete e forza le attivazioni del forget set verso vettori di rumore casuale:
+in pratica sovrascrive il modo in cui il modello codifica quella conoscenza,
+rendendola illeggibile. Un secondo termine della loss vincola le attivazioni
+del retain set a restare invariate, così il modello non perde capacità
+generali.
+
+UNDIAL funziona diversamente: prende la distribuzione di probabilità del
+modello originale, abbassa i logit dei token legati alle risposte da
+dimenticare, e poi riaddestra il modello a riprodurre questa distribuzione
+corretta. In sostanza, il modello impara una versione di sé stesso che non
+conosce più quelle risposte. Essendo formulato come una minimizzazione
+standard, la convergenza è stabile. Però il teacher è congelato sulle
+domande originali: se il modello riceve parafrasi che il teacher non ha mai
+visto, il segnale di correzione non è efficace.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 5 — Domanda di Ricerca
+────────────────────────────────────────────────────────────────────────────────
+
+La domanda di ricerca è: l'introduzione di parafrasi durante il processo di
+unlearning può rendere il forgetting più robusto e semanticamente profondo?
+
+Lo stato dell'arte usa le parafrasi solo per la valutazione post-unlearning.
+La nostra proposta è integrarle direttamente nel processo, costringendo il
+modello a dimenticare non la singola formulazione, ma la rappresentazione
+semantica sottostante.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 6 — S-UNL: Pipeline
+────────────────────────────────────────────────────────────────────────────────
+
+Abbiamo sviluppato S-UNL, Semantic-Unlearning LLM, come estensione di
+OpenUnlearning. La pipeline ha tre componenti: il Data Loader genera offline
+fino a venti parafrasi per domanda del forget set; l'Unlearning Engine
+applica il metodo scelto sul modello di partenza usando il dataset arricchito;
+l'Evaluator valuta il modello risultante su metriche di memorizzazione,
+privacy e utilità.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 7 — Setup Sperimentale
+────────────────────────────────────────────────────────────────────────────────
+
+Come benchmark usiamo TOFU: 200 autori fittizi con coppie domanda-risposta.
+Configurazione forget10: 400 coppie su 20 autori da dimenticare. Il modello
+di base è Llama-3.2-1B-Instruct, già fine-tuned su TOFU. Cinque livelli di
+arricchimento: da zero a venti parafrasi per domanda. I sei metodi che
+abbiamo appena descritto sono stati testati con iperparametri identici per
+isolare l'effetto delle parafrasi.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 8 — Metriche di Valutazione
+────────────────────────────────────────────────────────────────────────────────
+
+Le metriche coprono tre assi: memorizzazione, privacy e utilità. Il punto chiave è che un modello idealmente unlearned deve
+essere indistinguibile da uno mai addestrato sul forget set.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 9 — Risultati: Memorizzazione Letterale
+────────────────────────────────────────────────────────────────────────────────
+
+Veniamo ai risultati. Partiamo dalla memorizzazione letterale. I due grafici
+mostrano l'Exact Memorization — la frazione di token riprodotti
+letteralmente — e l'Extraction Strength — la facilità di completamento a partire da
+un prefisso della sequenza —  al variare del numero di parafrasi.
+
+I metodi basati su preferenze beneficiano maggiormente: NPO riduce l'EM del
+18%, DPO del 14.5%. L'Extraction Strength amplifica questi risultati: NPO
+arriva a -74%, SimNPO a -51%.
+
+GradDiff e RMU partono già da valori prossimi allo zero perché intervengono
+direttamente sulle rappresentazioni interne, quindi le parafrasi non
+aggiungono beneficio significativo.
+
+UNDIAL è completamente insensibile alle parafrasi: usa come riferimento una
+copia congelata del modello originale, addestrata solo sulle 400 domande
+originali. Quando riceve domande parafrasate, il teacher non le riconosce
+e non fornisce un segnale utile per l'unlearning.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 10 — Risultati: Memorizzazione Semantica
+────────────────────────────────────────────────────────────────────────────────
+
+Passiamo alla memorizzazione semantica. I grafici mostrano la probabilità
+assegnata dal modello alle risposte corrette nelle formulazioni originali,
+alle risposte parafrasate, e il Truth Ratio.
+
+DPO riduce la probabilità dell'88.7% sulle risposte originali e del 93.7%
+sulle su quelle parafrasate. Questo dimostra che le parafrasi intaccano la
+rappresentazione semantica sottostante, non solo la familiarità con la
+formulazione specifica.
+
+Il Truth Ratio converge verso 0.5 per DPO, NPO e SimNPO: il modello perde
+la capacità di distinguere la risposta corretta da una perturbata,
+avvicinandosi al comportamento di un modello che non ha mai visto quei dati.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 11 — Risultati: Privacy
+────────────────────────────────────────────────────────────────────────────────
+
+Passiamo alla privacy. I Membership Inference Attacks cercano di stabilire
+se un dato faceva parte del training set, sfruttando differenze statistiche
+nel comportamento del modello. Si misura tramite AUC-ROC quanto bene uno
+score di attacco distingua il forget set dall'holdout set.
+
+Il valore ideale è 0.5: indistinguibilità statistica. Valori sopra
+0.5 indicano under-unlearning: la loss sui dati del forget set resta
+anomalmente bassa, il modello li predice ancora troppo bene, come se
+fossero ancora nel training set. Valori sotto 0.5 indicano over-unlearning:
+la loss è anomalmente alta, il modello tratta quei dati come più estranei
+di qualsiasi dato mai visto. In entrambi i casi il comportamento è
+distinguibile da quello di un modello mai addestrato su quei dati, dove la
+loss sarebbe nella norma.
+
+DPO beneficia maggiormente: Con venti parafrasi tutte le varianti convergono
+nell'intervallo 0.48-0.58, raggiungendo quasi perfetta indistinguibilità.
+
+SimNPO parte da AUC vicine a 1.0 — forte under-unlearning, il modello
+conserva ancora troppa confidenza sulle risposte da dimenticare — e migliora
+con le parafrasi, ma resta distante dall'ottimo.
+
+GradDiff e RMU mostrano il problema opposto: AUC prossime a zero, cioè
+over-unlearning. Pur eccellendo sulla memorizzazione letterale, producono
+una loss così alta sui dati dimenticati che un attaccante può facilmente
+riconoscerli: nessun dato mai visto avrebbe una loss così estrema. Le
+parafrasi non correggono questa tendenza strutturale.
+
+Il Privacy Leakage conferma: valori positivi come quelli di GradDiff (+62)
+e RMU (+57) indicano over-unlearning; valori negativi come DPO (-73.6) e
+SimNPO (-97.2) indicano under-unlearning alla baseline. Con le parafrasi,
+DPO si avvicina a zero e NPO scende da +22 a +7.7, il miglior risultato
+raggiunto.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 12 — Risultati: Utilità e Forget Fluency
+────────────────────────────────────────────────────────────────────────────────
+
+Questo è un risultato chiave. Model Utility e Forget Fluency raccontano
+storie diverse.
+
+RMU ha la migliore Model Utility ma produce gibberish sul forget set: oltre
+il 97% delle risposte è incomprensibile. Stessa cosa per GradDiff. Un
+sistema che risponde con sequenze senza senso non è deployabile.
+
+DPO ottiene il miglior punteggio combinato MU×FF = 0.491: risposte
+fluide e coerenti anche sul forget set, rispondendo in modo evasivo o
+generico. SimNPO segue con 0.475.
+
+NPO mostra un'anomalia: la Forget Fluency peggiora con le parafrasi. A
+differenza di DPO, NPO non ha risposte alternative verso cui convergere —
+spinge il modello lontano dalle risposte corrette senza fornire una
+direzione, degradando la qualità linguistica.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 13 — Sintesi dei Risultati Principali
+────────────────────────────────────────────────────────────────────────────────
+
+In sintesi: le parafrasi funzionano e l'effetto è fortemente
+metodo-dipendente. DPO offre il miglior bilanciamento complessivo su tutte
+le dimensioni. La privacy migliora significativamente — DPO raggiunge
+indistinguibilità statistica. La Forget Fluency è una metrica discriminante:
+GradDiff e RMU sono inutilizzabili nonostante l'ottima memorizzazione.
+Cinque-dieci parafrasi catturano quasi tutto il beneficio, con rendimenti
+decrescenti oltre quella soglia.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 14 — Conclusioni e Sviluppi Futuri
+────────────────────────────────────────────────────────────────────────────────
+
+Il contributo principale è aver dimostrato che integrare parafrasi nel
+processo di unlearning è un intervento qualitativo che modifica il livello
+a cui opera la rimozione della conoscenza.
+
+Cinque-dieci parafrasi sono sufficienti, il costo è contenuto e l'approccio
+è integrabile in workflow conformi al GDPR. Per deployment reali, DPO e
+SimNPO sono i metodi consigliati.
+
+Sviluppi futuri: scalabilità a modelli più grandi, validazione su dataset
+realistici, criteri automatici di selezione delle parafrasi più efficaci,
+e analisi di interpretabilità sugli strati della rete modificati.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLIDE 15 — Chiusura
+────────────────────────────────────────────────────────────────────────────────
+
+Grazie per l'attenzione. Sono a disposizione per le vostre domande.
+
+
+================================================================================
+  APPENDICE — Slide di backup (da mostrare solo in caso di domande)
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 1 — Metriche di Memorizzazione (se chiedono dettagli sulle metriche)
+────────────────────────────────────────────────────────────────────────────────
+
+Partiamo dall'Exact Memorization. La formula è:
+
+  EM = (1/|y|) Σ_{k=1}^{|y|} 1( argmax_{v ∈ V} p(v | x, y_{<k}; θ) = y_k )
+
+In parole: data una sequenza target y di lunghezza |y| token, per ciascuna
+posizione k il modello produce una distribuzione di probabilità sull'intero
+vocabolario V condizionata all'input x e al prefisso y_{<k}. Si prende il
+token con probabilità massima tramite argmax e si confronta con il token di
+riferimento y_k. La funzione indicatrice vale 1 se coincidono, 0 altrimenti.
+Si media su tutta la sequenza. Un valore alto indica che il modello sta
+ancora rigenerando letteralmente le risposte del forget set, token per token.
+
+Passiamo all'Extraction Strength. La formula è:
+
+  ES = 1 - (1/|y|) min_k { k | f([x, y_{<k}]; θ) = y_{≥k} }
+
+Questa metrica cerca il prefisso minimo k tale che, dando al modello l'input
+x più i primi k token della risposta, esso riesca a completare correttamente
+tutto il resto della sequenza y_{≥k}. La funzione f rappresenta la
+generazione autoregressiva del modello. Il valore viene normalizzato e
+sottratto da 1: se ES è alto, basta un frammento brevissimo per ricostruire
+tutta la risposta — la conoscenza è ancora profondamente radicata. Se ES è
+basso, il modello necessita di quasi tutta la sequenza come prompt, segno
+che non riesce più a completare autonomamente.
+
+Poi abbiamo la Probability, che è la probabilità autoregressiva:
+
+  P = p(y | x; θ) = Π_{k=1}^{|y|} p(y_k | x, y_{<k}; θ)
+
+Ovvero il prodotto delle probabilità condizionate token per token. Misura
+quanto il modello sia "fiducioso" nel generare esattamente la risposta
+corretta. La sua variante, la Paraphrased Probability, calcola la stessa
+quantità ma sulla versione parafrasata y_para della risposta:
+
+  P_para = Π_{k=1}^{|y_para|} p( (y_para)_k | x, (y_para)_{<k}; θ )
+
+Se P_para è alta tanto quanto P, il modello conserva la conoscenza a livello
+semantico, non solo la familiarità con la formulazione testuale originale.
+
+Infine, il Truth Ratio. La formula è:
+
+  TruthRatio = p(y_para | x; θ) / ( p(y_para | x; θ) + p(y_pert | x; θ) )
+
+dove y_para è la parafrasi della risposta corretta e y_pert è una versione
+perturbata, semanticamente errata. Il denominatore somma le due probabilità,
+quindi il rapporto è compreso tra 0 e 1. Se il modello sa ancora
+distinguere la risposta corretta da quella alterata, il Truth Ratio sarà
+vicino a 1. Se invece non riesce più a discriminare — cioè assegna
+probabilità simili a entrambe — il valore converge a 0.5, che è
+esattamente l'ideale: il modello si comporta come se non avesse mai visto
+quei dati.
+
+Queste quattro metriche vengono poi aggregate nel Memorization Score tramite
+una media armonica delle loro versioni invertite:
+
+  MemScore = HM(1 - ES, 1 - EM, 1 - P_para, 1 - TruthRatio)
+
+La media armonica penalizza fortemente anche una singola componente debole,
+impedendo che buone prestazioni su una dimensione mascherino carenze su
+un'altra.
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 2 — Metriche di Privacy (se chiedono dettagli sui MIA)
+────────────────────────────────────────────────────────────────────────────────
+
+I Membership Inference Attacks cercano di stabilire se un certo esempio
+faceva parte del training set del modello. L'idea è che il modello si
+comporta diversamente sui dati che ha visto durante l'addestramento rispetto
+a dati mai visti. Il processo si articola in due fasi: prima si calcola uno
+score di attacco per ogni esempio, poi si usa l'AUC-ROC per misurare quanto
+bene lo score distingua il forget set dall'holdout set.
+
+La variante MIA Loss usa come score la cross-entropy media:
+
+  s_LOSS(x, y) = (1/|y|) Σ_{i=1}^{|y|} L_CE( f(x, y_{<i}; θ), y_i )
+
+In pratica, per ogni token della sequenza si calcola la cross-entropy loss
+tra la distribuzione predetta dal modello e il token effettivo. Una loss
+bassa indica che il modello è molto sicuro della sequenza — possibile
+segnale che l'ha memorizzata. Una loss alta indica incertezza, suggerendo
+che l'esempio non è stato visto.
+
+L'altra variante che usiamo è MIA Min-K++. Questa normalizza le
+log-probabilità token per token rispetto alla distribuzione predittiva
+completa del modello:
+
+  z_i = ( log p(y_i | x, y_{<i}; θ) - μ_i ) / sqrt(σ_i² + ε)
+
+dove μ_i e σ_i² sono media e varianza della distribuzione dei log delle
+probabilità sul vocabolario alla posizione i. In pratica, si calcola uno
+z-score: non guardiamo quanto è probabile il token in assoluto, ma quanto
+è probabile rispetto alla distribuzione attesa. Poi si prendono i K token
+con gli z-score più bassi e se ne calcola la media cambiata di segno:
+
+  s_MinK++(x, y) = -(1/K) Σ_{i ∈ K_K(z)} z_i
+
+Questa normalizzazione elimina il bias dovuto alla rarità intrinseca di
+certi token. Se anche i token meno probabili hanno z-score relativamente
+alti, il modello li "conosce" troppo bene — segnale di memorizzazione.
+
+L'AUC-ROC dell'attacco è la metrica che riportiamo. Il valore ideale è 0.5:
+l'attaccante non riesce a fare meglio del caso — forget set e holdout sono
+indistinguibili. Valori sopra 0.5 indicano under-unlearning, sotto 0.5
+over-unlearning.
+
+Passiamo al Privacy Leakage. La formula, nella convenzione MUSE, è:
+
+  PrivLeak = ( (1-AUC_unlearn) - (1-AUC_retain) ) / (1-AUC_retain) * 100
+
+In pratica, si confronta il MIA AUC del modello unlearned con quello del
+modello retain — il gold standard riaddestrato senza il forget set. Se vale
+zero, i due modelli sono indistinguibili. Se è positivo, c'è over-unlearning:
+il modello ha rimosso troppo, trattando i dati del forget set come più
+estranei di qualsiasi dato mai visto. Se è negativo, c'è under-unlearning:
+il modello conserva ancora tracce riconoscibili.
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 3 — Metriche di Utilità (se chiedono dettagli su MU e Fluency)
+────────────────────────────────────────────────────────────────────────────────
+
+La Model Utility misura quanto il modello conserva le sue capacità generali
+dopo l'unlearning. È definita come media armonica di nove sotto-metriche
+distribuite su tre livelli di conoscenza:
+
+  MU = HM(P_ret, R_ret, T_ret, P_ra, R_ra, T_ra, P_wf, R_wf, T_wf)
+
+dove P, R e T denotano Probability, ROUGE e Truth Ratio calcolati
+rispettivamente su: il retain set — i dati che il modello deve conservare;
+il set di autori reali — real authors; e i wrong-fact queries — domande
+con premesse errate. I punteggi vengono normalizzati rispetto al modello
+originale prima dell'unlearning, in modo che il massimo teorico corrisponda
+alle prestazioni iniziali. La media armonica garantisce che il modello non
+possa compensare una caduta su un asse con buone prestazioni su un altro.
+
+La Forget Fluency misura la qualità linguistica delle risposte generate
+sul forget set. La formula è:
+
+  Fluency = (1/|D_f|) Σ_{(x,y) ∈ D_f} 1( Classifier(f(x; θ)) = "coherent" )
+
+Si usa un classificatore supervisionato addestrato a distinguere testo
+coerente da testo "gibberish". Per ogni domanda del forget set, il modello
+genera una risposta e il classificatore la etichetta come coerente o
+incoerente. La Fluency è la frazione di risposte classificate come
+coerenti. Questa metrica è fondamentale perché un modello che genera
+sequenze incomprensibili non ha davvero "dimenticato" in modo selettivo:
+ha semplicemente degradato la sua capacità generativa, e non è deployabile.
+
+Lo score combinato che usiamo è il prodotto MU per FF:
+
+  Score = MU × FF
+
+Questo penalizza sia i modelli che dimenticano male — bassa MU — sia quelli
+che producono gibberish — bassa FF. Un valore alto indica che il modello ha
+rimosso la conoscenza mantenendo sia l'utilità generale sia la fluenza
+delle risposte. Come mostrato nei risultati, DPO raggiunge il miglior score
+di 0.491, confermando che è il metodo più adatto al deployment reale.
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 4 — Metodi basati sull'Ascesa del Gradiente (se chiedono dettagli)
+────────────────────────────────────────────────────────────────────────────────
+
+Il Gradient Ascent è il metodo più semplice: si inverte il segno del
+gradiente per massimizzare la loss sul forget set. La formula è:
+
+  L_GA(θ) = - L_CE(θ; D_f)
+
+Senza vincoli, il modello collassa in pochi passi: le rappresentazioni
+interne si deteriorano in modo indiscriminato. Questo fenomeno si chiama
+catastrophic collapse.
+
+GradDiff risolve il problema aggiungendo un termine sul retain set:
+
+  L_GD(θ) = - L_CE(θ; D_f) + λ · L_CE(θ; D_r)
+
+Il modello riceve due segnali contrapposti: allontanarsi dal forget set e
+restare vicino al retain set. Lambda controlla il bilanciamento. Però la
+massimizzazione diretta resta intrinsecamente instabile.
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 5 — Metodi basati sull'Ottimizzazione di Preferenze (se chiedono)
+────────────────────────────────────────────────────────────────────────────────
+
+DPO costruisce coppie di risposte: per ogni domanda del forget set, la
+risposta corretta diventa l'output indesiderato, e una risposta evasiva
+diventa l'output desiderato. La loss forza il modello a preferire la
+risposta evasiva, controllando la divergenza tramite un modello di
+riferimento.
+
+NPO semplifica: esprime solo una preferenza negativa sulle risposte da
+dimenticare, senza bisogno di risposte alternative. Il rapporto con il
+modello di riferimento frena la divergenza, e Zhang et al. dimostrano che
+il collasso è esponenzialmente più lento rispetto al Gradient Ascent.
+
+SimNPO fa un passo in più: elimina del tutto il modello di riferimento
+dall'obiettivo, usando solo la log-probabilità del modello corrente
+normalizzata per la lunghezza della sequenza. L'intuizione è che il modello
+di riferimento introduce un bias — pesa diversamente gli esempi in base a
+quanto erano stati memorizzati — e rimuoverlo porta a risultati migliori su
+diversi benchmark.
+
+
+────────────────────────────────────────────────────────────────────────────────
+BACKUP 6 — Metodi basati su Rappresentazioni e Distillazione (se chiedono)
+────────────────────────────────────────────────────────────────────────────────
+
+RMU opera su un insieme selezionato di strati dell'architettura. L'idea è
+concreta: le attivazioni del forget set vengono forzate verso vettori di
+rumore casuale, sovrascrivendo fisicamente il modo in cui il modello
+codifica quella conoscenza. È come cancellare un file sul disco scrivendoci
+sopra dati casuali. Il secondo termine della loss fa l'opposto: vincola le
+attivazioni del retain set a restare identiche a quelle del modello
+originale, proteggendo la conoscenza da preservare. Il coefficiente alpha
+bilancia i due obiettivi.
+
+Il vantaggio è che la corruzione avviene a livello di rappresentazioni
+intermedie, rendendo più difficile recuperare la conoscenza tramite probing
+o riformulazioni. Lo svantaggio è che la scelta degli strati e di alpha è
+delicata: troppo aggressivo compromette le capacità generali. Nei nostri
+esperimenti, RMU ottiene ottimi risultati sulla memorizzazione ma produce
+gibberish, rendendo il modello inutilizzabile.
+
+UNDIAL adotta una strategia diversa: rinuncia completamente alla
+massimizzazione della loss. Il procedimento ha due passi. Primo, prende la
+distribuzione di probabilità del modello originale e abbassa i logit dei
+token che trasportano la conoscenza da rimuovere, ottenendo una distribuzione
+"corretta". Secondo, addestra il modello a riprodurre questa distribuzione
+tramite divergenza KL. In pratica il modello impara una versione di sé
+stesso che non conosce più quelle risposte.
+
+Essendo una minimizzazione standard, la convergenza è stabile e il rischio
+di collasso è praticamente eliminato. Però c'è un limite strutturale: il
+teacher è una copia congelata del modello originale, addestrata solo sulle
+domande originali. Quando il modello riceve domande parafrasate durante
+l'unlearning, il teacher non le riconosce e non riesce a fornire una
+correzione utile. Per questo nei nostri risultati UNDIAL è completamente
+insensibile alle parafrasi.

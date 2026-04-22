@@ -41,6 +41,10 @@ retain_split="retain90"
 holdout_split="holdout10"
 num_epochs=20
 
+# File parafrasi
+paraphrases_file="data/tofu_${forget_split}_augmented.json"
+paraphrases_generator="scripts/generation/generate_paraphrases.py"
+
 # Array per ordine garantito di esecuzione
 trainers_order=("GradDiff" "NPO" "SimNPO" "DPO" "RMU" "UNDIAL")
 
@@ -75,7 +79,49 @@ echo "Parafrasi da testare: ${paraphrase_counts[@]} (0=baseline senza parafrasi)
 echo "Metodi: ${trainers_order[@]}"
 echo "Force overwrite: ${FORCE_OVERWRITE}"
 echo "=========================================="
-
+# Controlla se esiste il file delle parafrasi
+if [ ! -f "${paraphrases_file}" ]; then
+    echo ""
+    echo "⚠️  File parafrasi non trovato: ${paraphrases_file}"
+    echo "📝 Generazione automatica delle parafrasi in corso..."
+    echo ""
+    
+    # Genera 20 parafrasi per ogni domanda (massimo richiesto dallo studio)
+    CUDA_VISIBLE_DEVICES=0 python ${paraphrases_generator} \
+        --dataset locuslab/TOFU \
+        --split ${forget_split} \
+        --output ${paraphrases_file} \
+        --num-paraphrases 20 \
+        --model meta-llama/Llama-3.2-3B-Instruct
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ ERROR: Generazione parafrasi fallita!"
+        echo "   Genera manualmente con:"
+        echo "   python ${paraphrases_generator} --split ${forget_split} --output ${paraphrases_file} --num-paraphrases 20"
+        exit 1
+    fi
+    
+    echo ""
+    echo "✅ Parafrasi generate con successo!"
+    echo "   File: ${paraphrases_file}"
+    echo ""
+else
+    echo ""
+    echo "✅ File parafrasi trovato: ${paraphrases_file}"
+    
+    # Verifica quante parafrasi contiene
+    num_paras=$(jq '.[0].paraphrases | length' ${paraphrases_file} 2>/dev/null || echo "unknown")
+    echo "   Parafrasi per domanda: ${num_paras}"
+    
+    if [ "${num_paras}" != "unknown" ] && [ "${num_paras}" -lt 20 ]; then
+        echo ""
+        echo "⚠️  Attenzione: Il file contiene solo ${num_paras} parafrasi per domanda."
+        echo "   Lo studio richiede 20 parafrasi per la configurazione para20."
+        echo "   Considera di rigenerare il file con:"
+        echo "   python ${paraphrases_generator} --split ${forget_split} --output ${paraphrases_file} --num-paraphrases 20"
+        echo ""
+    fi
+fi
 # Loop su numero di parafrasi
 for num_paraphrases in "${paraphrase_counts[@]}"; do
     echo ""

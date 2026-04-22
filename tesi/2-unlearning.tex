@@ -1,0 +1,180 @@
+\chapter{Formulazione del Problema}
+\label{chap:problem_formulation}
+Questo capitolo introduce una formulazione rigorosa del problema del \emph{machine unlearning} nei modelli di linguaggio di grandi dimensioni. 
+Dopo aver delineato nel capitolo introduttivo il contesto generale e le principali motivazioni, qui formalizziamo in modo preciso gli elementi concettuali e matematici che caratterizzano il processo di rimozione selettiva dell’informazione. 
+In particolare, vengono esplicitate le assunzioni operative, gli obiettivi di ottimizzazione e i vincoli che definiscono le diverse impostazioni del problema, seguendo e generalizzando la tassonomia proposta in recenti lavori in letteratura \cite{liu2024rethinkingmachineunlearninglarge, openunlearning2025, geng2025comprehensivesurveymachineunlearning}. 
+Il capitolo fornisce inoltre una distinzione sistematica tra i principali paradigmi di unlearning, ponendo le basi teoriche per l’analisi dei metodi e delle metriche che verranno presentati nei capitoli successivi.
+
+\medskip
+
+\section{Formalizzazione di Base}
+
+Sia $\theta$ il vettore dei parametri di un modello di linguaggio già addestrato o fine-tuned rispetto a un insieme di dati supervisionati. L’obiettivo del processo di unlearning è modificare $\theta$ affinché il modello risultante, indicato con $\theta_{\mathrm{unl}}$, si comporti come se un sottoinsieme specifico di dati non fosse mai stato utilizzato durante l’addestramento.
+
+Definiamo pertanto due insiemi fondamentali:
+\begin{itemize}
+    \item \textbf{Forget set} $D_f$: l’insieme dei campioni la cui influenza deve essere rimossa.
+    \item \textbf{Retain set} $D_r$: l’insieme di dati per cui il modello deve invece preservare le capacità originarie.
+\end{itemize}
+
+Il comportamento desiderato è espresso attraverso un obiettivo di ottimizzazione che bilancia la rimozione e la conservazione dell'informazione. Una formulazione generale adottata dalla letteratura recente è:
+\begin{equation}
+\min_{\theta} \; \mathcal{L}(\theta)
+    = \min_{\theta} \left\{
+        - \mathcal{L}_f(\theta) + \lambda \, \mathcal{L}_r(\theta)
+    \right\},
+\label{eq:unlearning_objective}
+\end{equation}
+dove:
+\begin{itemize}
+    \item $\mathcal{L}_f(\theta)$ è la loss predittiva standard (tipicamente la cross-entropia) calcolata sul forget set $D_f$. Poiché compare con segno negativo nell'obiettivo, minimizzare $\mathcal{L}(\theta)$ equivale a \emph{massimizzare} $\mathcal{L}_f(\theta)$, spingendo il modello lontano dalla distribuzione dei dati da dimenticare;
+    \item $\mathcal{L}_r(\theta)$ è la loss predittiva calcolata sul retain set $D_r$: minimizzarla preserva la capacità del modello di generare correttamente le informazioni che devono rimanere accessibili;
+    \item $\lambda \geq 0$ è un iperparametro di bilanciamento che controlla il trade-off tra l'intensità del forgetting e il mantenimento delle prestazioni sul retain set.
+\end{itemize}
+
+Questa formulazione non impone una scelta particolare per le due componenti di loss: esse possono rappresentare errori di previsione, misure di divergenza, penalità di similarità verso $\theta_{\mathrm{ori}}$, oppure strutture più complesse basate su metriche di memorizzazione o propensione generativa. La sua generalità la rende adatta a descrivere un ampio spettro di tecniche di unlearning, dalle modifiche parametriche dirette ai metodi basati su retraining parziale.
+
+\section{Spazio delle Soluzioni e Vincoli}
+
+Il problema è reso complesso dalla natura distribuita dell’informazione nei modelli di grandi dimensioni: l’influenza di un singolo campione non è localizzabile in uno specifico sottoinsieme di parametri, ma risulta intrecciata con il contributo di migliaia di altri esempi. Per questo motivo, l’ottimizzazione \eqref{eq:unlearning_objective} deve soddisfare contemporaneamente due vincoli fondamentali:
+\begin{enumerate}
+    \item \textbf{Indistinguibilità dal retraining ideale}.  
+    $\theta_{\mathrm{unl}}$ dovrebbe approssimare il comportamento di un modello $\theta_{\mathrm{ret}}$ ottenuto riaddestrando da zero il modello su $D_r$, eliminando completamente $D_f$. Questo
+ modello è spesso inaccessibile nella pratica a causa del costo computazionale, ma rappresenta il punto di riferimento teorico.
+    
+    \item \textbf{Invarianza delle capacità generali}.  
+    L’unlearning non deve degradare in modo significativo la qualità complessiva del modello su task non correlati a $D_f$, incluse capacità linguistiche generali, reasoning e performance su benchmark esterni. Questo vincolo è cruciale soprattutto nel caso degli LLM di grandi dimensioni, dove la perdita di capacità generali comporta un valore operativo molto elevato.
+\end{enumerate}
+
+L'equilibrio tra questi vincoli definisce la difficoltà del problema: eliminare troppo aggressivamente l’informazione porta a un deterioramento globale del modello; agire in modo troppo conservativo porta a un forgetting incompleto o apparente.
+
+\section{Paradigmi di Unlearning}
+
+La letteratura più recente \cite{geng2025comprehensivesurveymachineunlearning} propone due formulazioni distinte del problema, che differiscono per la natura del modello di partenza e per il tipo di informazione che si intende eliminare. Non si tratta soltanto di un’operazione terminologica: i due scenari portano con sé vincoli operativi radicalmente diversi, sia in termini di accesso ai dati sia in relazione al comportamento che ci si aspetta dal modello dopo l’unlearning.
+
+\subsection{Paradigma \emph{Fine-Tuning-Then-Unlearning}}
+
+Il primo paradigma riguarda i casi in cui si dispone di un modello iniziale, $\theta_{\mathrm{pre}}$, pre-addestrato su un corpus generico. Questo modello viene adattato a un compito specifico attraverso un finetuning supervisionato, ottenendo un modello $\theta_{\mathrm{ori}}$ che incorpora l’influenza combinata dei dati di addestramento. In questo contesto, il forget set $D_f$ coincide con una porzione controllata del dataset utilizzato nel finetuning, mentre il retain set $D_r$ comprende i rimanenti esempi.
+
+Questa impostazione consente una descrizione particolarmente chiara del processo di unlearning, perché la struttura del problema è pienamente osservabile: sia $D_f$ sia $D_r$ sono noti, il contributo dei singoli esempi è relativamente isolabile, e il comportamento desiderato è definito rispetto a un modello di riferimento ottenuto tramite retraining su $D_r$.
+
+Come mostrato in Figura~\ref{fig:overview_unlearning}, il workflow tipico adotta una sequenza relativamente standard:
+\begin{enumerate}
+\item si esegue un finetuning iniziale su $D_f \cup D_r$, ottenendo $\theta_{\mathrm{ori}}$;
+\item si applica un metodo di unlearning, che può basarsi su ottimizzazione diretta, regolarizzazioni mirate, penalità di similarità oppure strategie di editing dei parametri;
+\item si valuta il modello finale $\theta_{\mathrm{unl}}$ confrontandolo sia con il comportamento ideale del modello riaddestrato su $D_r$, sia con le sue prestazioni generali su compiti non correlati.
+\end{enumerate}
+
+La chiarezza strutturale di questo paradigma ha reso possibile la creazione di benchmark sintetici, come TOFU \cite{maini2024tofu}, che costruiscono dati controllati allo scopo di verificare con precisione la capacità dei metodi di rimuovere informazione senza degradare il modello. Questi ambienti completamente osservabili costituiscono un laboratorio ideale per misurare separatamente il forgetting, la retention e la general utility.
+
+\begin{figure}[H] 
+\centering \includegraphics[scale=0.45]{img/overview_unlearning.png} 
+\caption{Schema del paradigma \emph{Fine-Tuning-Then-Unlearning}: il modello di base viene finetunato su $D_f \cup D_r$ e successivamente sottoposto a tecniche di unlearning per rimuovere l’influenza di $D_f$.} \label{fig:overview_unlearning} 
+\end{figure}
+
+\subsection{Paradigma \emph{Direct-Unlearning}}
+
+Un secondo scenario, concettualmente più complesso, si presenta quando il modello di partenza $\theta_{\mathrm{ori}}$ è il risultato di un pretraining su larga scala. In questo caso, l’insieme dei dati realmente utilizzati durante l’addestramento è spesso solo parzialmente noto oppure totalmente irrecuperabile, poiché deriva da corpora eterogenei, filtrati in modo automatico e quasi sempre non replicabili in modo identico.
+
+In tale contesto, il forget set $D_f$ non coincide più con “i dati da cui il modello ha appreso”, bensì con una rappresentazione proxy delle conoscenze che si desidera eliminare. Le modalità più comuni per costruirlo includono:
+\begin{itemize}
+\item il recupero di snapshot o porzioni del corpus originale, quando disponibili;
+\item l’estrazione da dataset pubblici che contengono conoscenze simili a quelle che il modello dovrebbe “dimenticare”;
+\item la costruzione di benchmark mirati alla rimozione di contenuti sensibili, come istruzioni potenzialmente pericolose o informazioni fattuali non più autorizzate alla divulgazione.
+\end{itemize}
+
+In questo paradigma, l’obiettivo dell’unlearning si estende oltre la rimozione della memorizzazione testuale. L’attenzione si sposta anche sulla mitigazione di competenze indesiderate che possono emergere in seguito al pretraining, ad esempio la capacità di generare dettagli tecnici su temi a rischio o contenuti che compromettono la sicurezza. In altre parole, l’unlearning qui si avvicina al modello di “editing controllato” del comportamento del modello, mantenendo però un orizzonte più ampio e sistemico: invece di intervenire su una singola conoscenza, si agisce sul modo in cui il modello generalizza e utilizza determinate parti della sua rappresentazione interna.
+
+Ne consegue che la definizione dei set $D_f$ e $D_r$ è meno rigida e spesso non coincide con una suddivisione naturale dei dati. Inoltre, la valutazione dell'unlearning richiede metriche più raffinate, capaci di distinguere tra semplice soppressione della memorizzazione e riduzione dell’abilità del modello di ragionare o generare contenuti collegati a ciò che si vuole eliminare.
+
+Questa complessità rende il paradigma di \emph{Direct-Unlearning} più realistico ma anche molto più difficile da analizzare in termini teorici: il comportamento del modello dipende da interazioni non lineari tra milioni di esempi di addestramento, e la rimozione di un singolo tipo di conoscenza può produrre effetti collaterali non immediatamente prevedibili.
+
+\section{Metodi di Unlearning}
+\label{sec:metodi_unlearning}
+
+Dopo aver delineato i paradigmi entro cui il problema dell'unlearning viene formulato, è naturale chiedersi quali strategie concrete siano state sviluppate per affrontarlo. Ogni metodo rappresenta, in fondo, una diversa declinazione dell'obiettivo di ottimizzazione introdotto nell'Equazione~\eqref{eq:unlearning_objective}, e si distingue per il modo in cui cerca di conciliare la rimozione della conoscenza indesiderata con la conservazione delle capacità rimanenti del modello.
+
+Negli ultimi anni la comunità di ricerca ha proposto un numero crescente di approcci, che possono essere raggruppati in tre famiglie principali \cite{geng2025comprehensivesurveymachineunlearning, liu2024rethinkingmachineunlearninglarge}: i metodi che agiscono direttamente sulle dinamiche del gradiente per allontanare il modello dai dati da dimenticare, quelli che riformulano il compito nei termini dell'ottimizzazione di preferenze — importando tecniche nate per l'allineamento dei modelli — e quelli che intervengono sulle rappresentazioni intermedie all'interno dell'architettura. Questa classificazione non va intesa in senso rigido, dal momento che diversi approcci combinano elementi trasversali, ma fornisce un quadro utile per orientarsi nel panorama delle soluzioni disponibili.
+
+\subsection{Metodi basati sull'Ascesa del Gradiente}
+
+Il modo più immediato per indurre un modello a dimenticare determinate informazioni consiste nell'invertire il processo di apprendimento: anziché minimizzare la loss sui dati da rimuovere, la si massimizza. Questo principio, noto come \emph{Gradient Ascent} (GA), corrisponde al caso speciale dell'Equazione~\eqref{eq:unlearning_objective} in cui il termine di regolarizzazione è assente ($\lambda = 0$):
+\begin{equation}
+    \mathcal{L}_{GA}(\theta) = -\,\mathcal{L}_{CE}(\theta;\, D_f),
+    \label{eq:gradient_ascent}
+\end{equation}
+dove $\mathcal{L}_{CE}$ indica la cross-entropia standard. Minimizzare $\mathcal{L}_{GA}$ equivale dunque a massimizzare la perdita predittiva sul forget set, forzando il modello a produrre previsioni sempre più distanti dalle risposte corrette associate ai dati da dimenticare.
+
+L'attrattiva di questo metodo risiede nella sua semplicità: non servono dati aggiuntivi, non servono modelli di riferimento, e l'implementazione si riduce a invertire il segno del gradiente durante l'aggiornamento dei pesi. Il rovescio della medaglia, però, è altrettanto netto. Senza alcun meccanismo che circoscriva la divergenza dei parametri, il modello non ha modo di distinguere tra ciò che deve dimenticare e ciò che deve conservare: le rappresentazioni interne si deteriorano in modo indiscriminato, e bastano pochi passi di ottimizzazione perché il testo generato diventi incoerente o del tutto privo di senso. Questo fenomeno, chiamato in letteratura \emph{catastrophic collapse} \cite{zhang_negative_2024}, costituisce il limite strutturale dell'ascesa del gradiente e ha motivato lo sviluppo di varianti più controllate.
+
+\paragraph{Gradient Difference (GradDiff).}
+Una prima risposta concreta a questo problema è il metodo \emph{Gradient Difference} \cite{liu2024rethinkingmachineunlearninglarge}, che reintroduce il vincolo di preservazione aggiungendo un termine di regolarizzazione calcolato sul retain set:
+\begin{equation}
+    \mathcal{L}_{GD}(\theta) = -\,\mathcal{L}_{CE}(\theta;\, D_f) \;+\; \lambda \cdot \mathcal{L}_{CE}(\theta;\, D_r).
+    \label{eq:grad_diff}
+\end{equation}
+In pratica, ad ogni passo di aggiornamento il modello riceve due segnali contrapposti: il primo lo spinge ad allontanarsi dalla distribuzione dei dati da dimenticare, il secondo lo vincola a mantenere buone prestazioni su quelli da conservare. Il parametro $\lambda$ controlla il bilanciamento tra i due obiettivi e la sua scelta ha un impatto diretto sulla qualità del risultato finale.
+
+È interessante notare che questa formulazione coincide di fatto con l'obiettivo generale dell'Equazione~\eqref{eq:unlearning_objective}; GradDiff può dunque essere pensato come il punto di partenza su cui molti metodi successivi costruiscono strutture e vincoli aggiuntivi. Rispetto all'ascesa del gradiente pura, la presenza del termine di retain set argina il rischio di collasso globale, ma rimane un problema di fondo: la massimizzazione diretta della loss è un obiettivo intrinsecamente instabile, perché il paesaggio della funzione obiettivo non è limitato superiormente e l'ottimizzazione può divergere in direzioni non controllate.
+
+\subsection{Metodi basati sull'Ottimizzazione di Preferenze}
+
+Una famiglia di metodi concettualmente diversa trae ispirazione dalle tecniche di allineamento sviluppate nell'ambito del \emph{Reinforcement Learning from Human Feedback} (RLHF). L'idea centrale è riformulare il problema dell'unlearning non come un semplice allontanamento dal forget set, ma come un'espressione di \emph{preferenze}: si guida il modello a preferire determinate risposte rispetto ad altre, riducendo in modo implicito la probabilità di generare contenuti legati alla conoscenza da eliminare.
+
+\paragraph{DPO per l'Unlearning.}
+Il meccanismo di \emph{Direct Preference Optimization} può essere adattato al contesto dell'unlearning costruendo coppie di risposte contrapposte \cite{openunlearning2025}: per ciascuna domanda del forget set, la risposta corretta viene etichettata come output \emph{indesiderato}, mentre una risposta generica ed evasiva — del tipo ``Non ho informazioni sufficienti per rispondere'' — viene indicata come output \emph{desiderato}. La funzione obiettivo assume la forma:
+\begin{equation}
+    \mathcal{L}_{DPO}(\theta) = -\,\mathbb{E}_{(x,\, y_w,\, y_l) \sim D_f}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}\right)\right],
+    \label{eq:dpo_unlearning}
+\end{equation}
+dove $y_w$ denota la risposta desiderata (evasiva), $y_l$ la risposta da cui il modello deve allontanarsi (l'informazione da dimenticare), $\pi_{\mathrm{ref}}$ il modello di riferimento prima dell'unlearning, $\beta$ un parametro di temperatura che governa l'intensità della preferenza e $\sigma(\cdot)$ la funzione sigmoide.
+
+Il vantaggio principale di questa impostazione è che il modello non viene semplicemente ``spinto via'' dal comportamento originale: gli si indica esplicitamente come comportarsi in alternativa, il che tende a produrre output più coerenti e controllabili rispetto ai metodi puramente basati sul gradiente. Di contro, occorre preparare una risposta alternativa per ogni esempio del forget set, e la qualità di queste risposte influenza in modo diretto il risultato dell'intero processo.
+
+\paragraph{Negative Preference Optimization (NPO).}
+Un passo ulteriore è compiuto da \emph{NPO} \cite{zhang_negative_2024}, che parte da un'osservazione semplice: nel contesto dell'unlearning non è strettamente necessario specificare cosa il modello \emph{dovrebbe} dire, è sufficiente dire cosa \emph{non dovrebbe} dire. In altri termini, basta esprimere una preferenza negativa, rifiutando le risposte associate al forget set senza fornire alternative esplicite. L'obiettivo di NPO si riduce pertanto alla sola componente di rifiuto:
+\begin{equation}
+    \mathcal{L}_{NPO}(\theta) = -\frac{2}{\beta}\,\mathbb{E}_{(x,\,y) \sim D_f}\!\left[\log \sigma\!\left(-\beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\mathrm{ref}}(y \mid x)}\right)\right].
+    \label{eq:npo}
+\end{equation}
+Il rapporto $\pi_\theta / \pi_{\mathrm{ref}}$ introduce un meccanismo implicito di regolarizzazione: siccome la loss è definita in termini di distanza relativa dal modello di riferimento, la divergenza dei parametri è naturalmente frenata dalla struttura stessa dell'obiettivo. Zhang et al. \cite{zhang_negative_2024} dimostrano formalmente che, sotto queste condizioni, la progressione verso il collasso catastrofico è esponenzialmente più lenta rispetto all'ascesa del gradiente. In termini pratici, ciò significa che il modello può essere sottoposto a un numero maggiore di passi di unlearning prima che le sue capacità generali inizino a degradarsi, allargando la finestra operativa entro cui il metodo produce risultati utili.
+
+\paragraph{SimNPO.}
+Nonostante i vantaggi teorici di NPO, il ricorso sistematico al modello di riferimento porta con sé un problema sottile, che Fan et al. \cite{fan_simplicity_2024} chiamano \emph{reference model bias}. Il punto è che il modello di riferimento — quello precedente all'unlearning, ancora saturo delle conoscenze da rimuovere — non è un riferimento neutro: pesa in modo disuguale sugli esempi del forget set, penalizzando o favorendo diversamente quelli che erano stati memorizzati con intensità diverse. Questo squilibrio distorce l'allocazione dello sforzo di ottimizzazione, rendendo il processo meno efficiente di quanto potrebbe essere.
+
+\emph{SimNPO} risolve il problema in modo quasi sorprendente nella sua semplicità: elimina del tutto il modello di riferimento dall'obiettivo, sostituendo il rapporto di verosimiglianza con la sola log-probabilità del modello corrente, normalizzata per la lunghezza della sequenza generata:
+\begin{equation}
+    \mathcal{L}_{SimNPO}(\theta) = -\frac{2}{\beta}\,\mathbb{E}_{(x,\,y) \sim D_f}\!\left[\log \sigma\!\left(-\frac{\beta}{|y|}\, \log \pi_\theta(y \mid x)\right)\right].
+    \label{eq:simnpo}
+\end{equation}
+La divisione per $|y|$ — il numero di token nella risposta — impedisce che sequenze più lunghe ricevano un peso sproporzionato nel calcolo della loss. Il nome stesso del metodo riflette l'intuizione degli autori: proprio liberandosi dalla complessità aggiuntiva del modello di riferimento si ottiene un obiettivo più pulito, che su diversi benchmark produce risultati empiricamente migliori \cite{fan_simplicity_2024}.
+
+\subsection{Metodi basati sulla Manipolazione delle Rappresentazioni}
+
+Tutti i metodi descritti finora operano, in ultima analisi, sulle probabilità di output del modello, cercando di modificare la distribuzione dei token generati. Esiste però un approccio concettualmente diverso, che interviene a un livello più profondo: quello delle rappresentazioni interne costruite dal modello nei propri strati nascosti. Anziché cambiare \emph{cosa} il modello dice, si altera il modo in cui \emph{codifica internamente} l'informazione.
+
+\paragraph{Representation Misdirection for Unlearning (RMU).}
+Introdotto nel contesto del benchmark WMDP per la rimozione di conoscenze potenzialmente pericolose \cite{li2024wmdpbenchmarkmeasuringreducing}, \emph{RMU} adotta una strategia insolita: invece di cancellare la conoscenza problematica, la rende di fatto inaccessibile corrompendo le rappresentazioni interne ad essa associate. L'intuizione è che, se le attivazioni che il modello produce quando elabora input legati al forget set vengono deviate verso direzioni casuali nello spazio delle rappresentazioni, il modello perde la capacità di sfruttare quella conoscenza, pur senza modificarne esplicitamente i pesi che l'avevano originariamente codificata.
+
+In concreto, dato un insieme selezionato di strati $\mathcal{S}$ all'interno dell'architettura, RMU minimizza un obiettivo a due componenti:
+\begin{equation}
+    \mathcal{L}_{RMU}(\theta) = \alpha \sum_{l \in \mathcal{S}} \bigl\|\mathbf{h}_l(x_f;\,\theta) - \mathbf{r}_l\bigr\|^2_2 \;+\; (1-\alpha) \sum_{l \in \mathcal{S}} \bigl\|\mathbf{h}_l(x_r;\,\theta) - \mathbf{h}_l(x_r;\,\theta_{\mathrm{ori}})\bigr\|^2_2,
+    \label{eq:rmu}
+\end{equation}
+dove $\mathbf{h}_l(x;\,\theta)$ è il vettore di attivazione prodotto allo strato $l$ per l'input $x$, $\mathbf{r}_l$ è un vettore campionato casualmente da una distribuzione fissata, e il coefficiente $\alpha$ regola il peso relativo dei due termini. Il primo termine forza le attivazioni del forget set verso direzioni prive di struttura informativa; il secondo vincola le attivazioni del retain set a restare vicine a quelle del modello originale $\theta_{\mathrm{ori}}$, impedendo che la perturbazione si propaghi a conoscenze che devono essere preservate.
+
+Rispetto ai metodi che agiscono a livello di output, RMU offre una protezione potenzialmente più profonda: poiché la corruzione avviene nelle rappresentazioni intermedie, diventa più difficile recuperare la conoscenza rimossa attraverso attacchi di \emph{probing} o tramite riformulazioni delle domande. Tuttavia, la scelta degli strati su cui intervenire e la calibrazione del parametro $\alpha$ richiedono un'attenzione particolare, perché una perturbazione troppo aggressiva o mal collocata può compromettere le capacità generali del modello.
+
+\paragraph{UNDIAL.}
+Un ultimo approccio che vale la pena descrivere rinuncia del tutto al principio della massimizzazione della loss, che accomuna — in forme diverse — quasi tutti i metodi precedenti. Il metodo \emph{UNDIAL} (\emph{Unlearning via Self-Distillation on Adjusted Logits}) \cite{dong_undial_2024} nasce dall'osservazione che i metodi fondati sulla massimizzazione soffrono di un'instabilità intrinseca: i moderni algoritmi di ottimizzazione sono progettati per minimizzare funzioni di perdita, e impiegarli nella direzione opposta produce dinamiche erratiche e difficili da governare. Questo è il motivo per cui, per esempio, GA collassa rapidamente e anche NPO richiede un'attenta calibrazione.
+
+UNDIAL aggira il problema ricorrendo alla \emph{auto-distillazione}: il modello funge da insegnante di se stesso, ma con una distribuzione di probabilità opportunamente corretta. I logit corrispondenti ai token che trasportano la conoscenza da rimuovere vengono ridotti selettivamente, e il modello viene poi addestrato a riprodurre questa distribuzione modificata tramite minimizzazione della divergenza di Kullback-Leibler:
+\begin{equation}
+    \mathcal{L}_{UNDIAL}(\theta) = D_{KL}\!\bigl(\,\tilde{p}_{\mathrm{adj}}(\cdot \mid x) \;\|\; p_\theta(\cdot \mid x)\,\bigr),
+    \label{eq:undial}
+\end{equation}
+dove $\tilde{p}_{\mathrm{adj}}$ è la distribuzione ottenuta attenuando i logit dei token bersaglio nella distribuzione originale del modello. Poiché l'intero processo è formulato come una minimizzazione standard, la convergenza è stabile e il rischio di collasso risulta significativamente ridotto. Questa proprietà rende UNDIAL particolarmente adatto a scenari impegnativi, come l'unlearning di porzioni consistenti del dataset o la gestione di richieste di rimozione sequenziali nel tempo, dove altri metodi tendono a degradare progressivamente le prestazioni complessive del modello \cite{dong_undial_2024}.
+
+\medskip
+
+In sintesi, i metodi presentati in questa sezione coprono un ventaglio piuttosto ampio di strategie, da quella più elementare del \emph{Gradient Ascent} — rapida ma fragile — fino ad approcci più sofisticati come RMU e UNDIAL, che cercano di ottenere un forgetting più stabile operando rispettivamente sulle rappresentazioni intermedie e sulla distillazione delle distribuzioni di output. Ciascun approccio comporta compromessi specifici tra efficacia della rimozione, stabilità del processo e preservazione delle capacità originarie. La scelta del metodo più adatto dipende dal contesto applicativo: il volume dei dati da dimenticare, la profondità della memorizzazione, la necessità di resistere a interrogazioni parafrasate e il grado di tolleranza alla degradazione delle prestazioni sono tutti fattori che influenzano il punto di equilibrio ottimale. Le metriche che consentono di misurare quantitativamente queste diverse dimensioni verranno approfondite nel capitolo successivo.

@@ -1,0 +1,230 @@
+================================================================================
+  DOMANDE PROBABILI — Discussione Tesi di Laurea
+  "Arricchimento Semantico E Unlearning"
+  Alberto Gambalonga
+================================================================================
+
+
+================================================================================
+  1. DOMANDA DI RICERCA E MOTIVAZIONE
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché ha scelto proprio le parafrasi e non altre forme di data
+   augmentation (sinonimi, back-translation, perturbazioni)?
+────────────────────────────────────────────────────────────────────────────────
+
+Le parafrasi preservano il significato completo della domanda, operando a
+livello semantico. Altre forme di augmentation, come la sostituzione di
+sinonimi, agiscono a livello lessicale e non garantiscono che il modello
+dimentichi la rappresentazione concettuale sottostante. L'obiettivo era
+forzare l'unlearning sul concetto, non sulla singola stringa di testo.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Come vengono generate le parafrasi? Non c'è il rischio che siano troppo
+   simili all'originale?
+────────────────────────────────────────────────────────────────────────────────
+
+Le parafrasi sono generate offline da un modello di linguaggio. Per ogni domanda del forget set se
+ne generano fino a 20 varianti. La diversità lessicale è garantita dal
+modello generatore; inoltre, il fatto che anche 5 parafrasi producano
+miglioramenti significativi suggerisce che anche una diversità moderata è
+sufficiente.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Qual è la differenza tra usare le parafrasi in fase di training (come fa
+   lei) e usarle solo in valutazione?
+────────────────────────────────────────────────────────────────────────────────
+
+In valutazione, le parafrasi servono a smascherare un forgetting
+superficiale — il modello risponde ancora correttamente se la domanda è
+riformulata. Nel nostro approccio, le parafrasi sono parte del processo di
+unlearning: il modello viene esposto a molteplici formulazioni della stessa
+domanda durante l'ottimizzazione, così impara a dimenticare il concetto, non
+solo la formulazione specifica.
+
+
+================================================================================
+  2. SETUP SPERIMENTALE
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché ha usato un modello da 1B di parametri e non uno più grande?
+────────────────────────────────────────────────────────────────────────────────
+
+Per vincoli computazionali: gli esperimenti richiedono 30 configurazioni
+(6 metodi × 5 livelli di parafrasi), ciascuna con training e valutazione
+completa. Un modello più piccolo permette di esplorare sistematicamente lo
+spazio dei parametri. Tra gli sviluppi futuri c'è la validazione su modelli
+più grandi.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: TOFU è un dataset sintetico con autori fittizi. I risultati si
+   generalizzano a dati reali?
+────────────────────────────────────────────────────────────────────────────────
+
+TOFU è progettato appositamente per isolare l'effetto dell'unlearning senza
+ambiguità: poiché gli autori sono fittizi, non compaiono nel pretraining del
+modello base, e possiamo controllare esattamente cosa il modello sa. La
+generalizzazione a scenari realistici (per esempio il benchmark MUSE) è uno
+degli sviluppi futuri indicati.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché forget10 e non forget1 o forget5?
+────────────────────────────────────────────────────────────────────────────────
+
+Forget10 rappresenta il 10% degli autori del dataset — 20 autori, 400 coppie
+Q&A. È la configurazione più usata in letteratura perché offre un buon
+bilanciamento: abbastanza dati da dimenticare per osservare effetti
+significativi, senza rendere il task banale.
+
+
+================================================================================
+  3. METODI DI UNLEARNING
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Può spiegare in parole semplici la differenza tra DPO e NPO?
+────────────────────────────────────────────────────────────────────────────────
+
+DPO dice al modello: "quando ti chiedono X, preferisci rispondere con
+un'evasiva anziché con la risposta corretta". Servono coppie di risposte
+(corretta vs. evasiva). NPO dice solo: "non rispondere così", senza fornire
+un'alternativa. È più semplice ma il modello non ha una direzione verso cui
+convergere.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché UNDIAL non beneficia delle parafrasi?
+────────────────────────────────────────────────────────────────────────────────
+
+UNDIAL usa un teacher congelato — una copia del modello originale — per
+generare la distribuzione "corretta". Il teacher è stato addestrato solo
+sulle 400 domande originali. Quando riceve una parafrasi che non ha mai
+visto, non sa come correggerla e genera un segnale inutile. Servirebbe un
+teacher aggiornato anche sulle parafrasi, ma questo va contro il design del
+metodo.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: GradDiff e RMU hanno ottimi risultati sulla memorizzazione. Perché li
+   sconsiglia?
+────────────────────────────────────────────────────────────────────────────────
+
+Perché producono gibberish: oltre il 97% delle risposte sul forget set sono
+incomprensibili. Un utente reale si accorgerebbe subito che il modello si
+comporta in modo anomalo. Un buon unlearning deve essere indistinguibile da
+un modello che non ha mai visto quei dati — e un modello normale non produce
+gibberish.
+
+
+================================================================================
+  4. METRICHE
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché il Truth Ratio ideale è 0.5 e non 0?
+────────────────────────────────────────────────────────────────────────────────
+
+0.5 significa che il modello non sa più distinguere la risposta vera da una
+falsa — è a caso, come ci si aspetterebbe da un modello che non ha mai visto
+quei dati. Un valore di 0 significherebbe che preferisce la risposta falsa,
+il che è una forma di over-unlearning: un comportamento anomalo che un
+attaccante potrebbe sfruttare.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Cos'è il Privacy Leakage e perché è importante?
+────────────────────────────────────────────────────────────────────────────────
+
+Il Privacy Leakage misura quanto il modello unlearned è distinguibile da un
+modello riaddestrato da zero senza il forget set (il gold standard). Se è
+zero, sono indistinguibili. Valori positivi indicano over-unlearning,
+negativi under-unlearning. È importante perché l'AUC da sola non dice se il
+modello si comporta come dovrebbe — solo il confronto con il retain model lo
+dice.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché usa MU×FF come score combinato e non una media?
+────────────────────────────────────────────────────────────────────────────────
+
+Il prodotto è più severo: se una delle due componenti è vicina a zero, il
+punteggio complessivo è basso. Un modello con MU perfetta ma FF=0
+(gibberish) ottiene 0. Una media semplice maschererebbe questo problema. In
+un contesto di deployment, entrambe le proprietà sono necessarie.
+
+
+================================================================================
+  5. RISULTATI E INTERPRETAZIONE
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Perché con NPO la fluency peggiora con le parafrasi?
+────────────────────────────────────────────────────────────────────────────────
+
+NPO esprime solo una preferenza negativa — dice al modello cosa non dire —
+senza fornire risposte alternative. Con più parafrasi, il modello viene
+spinto lontano da più formulazioni della risposta corretta
+contemporaneamente, ma senza una destinazione. Questo degrada la qualità
+dell'output. DPO non ha questo problema perché fornisce una risposta evasiva
+come obiettivo alternativo.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Dice che 5-10 parafrasi bastano. Come lo spiega?
+────────────────────────────────────────────────────────────────────────────────
+
+Il guadagno marginale decresce: le prime parafrasi coprono le riformulazioni
+più comuni. Oltre 10, le nuove parafrasi sono sempre più simili a quelle già
+viste e aggiungono poca informazione nuova. Inoltre il costo computazionale
+scala linearmente (da 400 a 4.400-8.400 esempi), quindi c'è un punto di
+rendimento ottimale.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Qual è il contributo originale del suo lavoro rispetto alla letteratura
+   esistente?
+────────────────────────────────────────────────────────────────────────────────
+
+Lo stato dell'arte usa le parafrasi esclusivamente come strumento di
+valutazione post-unlearning. Il nostro contributo è integrarle direttamente
+nel processo di unlearning e dimostrare sperimentalmente che questo
+intervento è qualitativo — modifica il livello (semantico vs. lessicale) a
+cui opera la rimozione — e non un semplice aumento quantitativo dei dati di
+addestramento.
+
+
+================================================================================
+  6. ASPETTI PRATICI E GDPR
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: In uno scenario reale GDPR, come si applicherebbe il suo approccio?
+────────────────────────────────────────────────────────────────────────────────
+
+Quando un utente esercita il diritto all'oblio, le sue Q&A vengono passate al
+generatore di parafrasi, si generano 5-10 varianti, e si applica
+l'unlearning con DPO. Il costo aggiuntivo è contenuto (stimato 10-20 ore vs.
+2 della baseline) e molto inferiore al retraining da zero.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D: Il costo computazionale aggiuntivo è giustificato?
+────────────────────────────────────────────────────────────────────────────────
+
+Sì, perché il retraining completo su un modello anche solo da 1B costerebbe
+ordini di grandezza in più. 5-10 parafrasi sono un buon compromesso: il
+costo cresce linearmente ma il beneficio si satura rapidamente, e il
+risultato è un forgetting qualitativamente diverso — semantico anziché
+superficiale.
